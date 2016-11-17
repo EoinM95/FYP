@@ -24,7 +24,7 @@ class Vector(object):
         """Add two vectors"""
         new_coords = []
         for (coord1, coord2) in zip(self.coords, other.coords):
-            print(coord1, coord2)
+            new_coords.append(coord1 + coord2)
         return Vector(new_coords)
 
 def sum_of_vectors(vector_list):
@@ -40,5 +40,5 @@ COORDS_B = [1, 2, 4]
 VEC1 = Vector(COORDS_A)
 VEC2 = Vector(COORDS_B)
 
-print('Cosine sim = ' + str(VEC1.cosine_similarity(VEC2)))
+# print('Cosine sim = ' + str(VEC1.cosine_similarity(VEC2)))
 # VEC1.sum(VEC2)
