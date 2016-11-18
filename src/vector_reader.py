@@ -13,12 +13,12 @@ def read_vectors_from_file(filename=VECTOR_FILE):
         for i in range(vocab_size):
             word = []
             while True:
-                ch = stream.read(1)
-                if ch == ' ':
+                char = stream.read(1)
+                if char == ' ':
                     word = ''.join(word)
                     break
-                if ch != '\n':
-                    word.append(ch)
+                if char != '\n':
+                    word.append(char)
             vec_coords = numpy.fromstring(stream.read(binary_len), dtype='float32', count = layer1_size)
             next_vec = Vector(vec_coords)
             vec_dictionary[word] = next_vec
