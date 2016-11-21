@@ -1,5 +1,5 @@
 """Defines function to read vectors from file"""
-import numpy
+import numpy as np
 from vector import Vector
 VECTOR_FILE = 'vectors.txt'
 
@@ -9,7 +9,7 @@ def read_vectors_from_file(filename=VECTOR_FILE):
     with open(filename, encoding='utf8') as stream:
         header = stream.readline()
         vocab_size, layer1_size = map(int, header.split())
-        binary_len = numpy.dtype('float32').itemsize * layer1_size
+        binary_len = np.dtype('float32').itemsize * layer1_size
         for i in range(vocab_size):
             word = []
             while True:
@@ -19,7 +19,7 @@ def read_vectors_from_file(filename=VECTOR_FILE):
                     break
                 if char != '\n':
                     word.append(char)
-            vec_coords = numpy.fromstring(stream.read(binary_len), dtype='float32', count = layer1_size)
+            vec_coords = np.fromstring(stream.read(binary_len), dtype='float32', count=layer1_size)
             next_vec = Vector(vec_coords)
             vec_dictionary[word] = next_vec
     return vec_dictionary
