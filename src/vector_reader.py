@@ -10,7 +10,7 @@ def read_vectors_from_file(filename=VECTOR_FILE):
         header = stream.readline()
         vocab_size, layer1_size = map(int, header.split())
         binary_len = np.dtype('float32').itemsize * layer1_size
-        print(vocab_size, binary_len)
+        print(vocab_size, layer1_size, binary_len)
         for i in range(vocab_size):
             string_bytes = bytearray()
             while True:
