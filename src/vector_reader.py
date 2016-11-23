@@ -2,7 +2,7 @@
 import sys
 import numpy as np
 from vector import Vector
-VECTOR_FILE = '../GoogleNews-vectors-negative300.bin'
+VECTOR_FILE = '../vectors.txt'
 
 def read_vectors_from_file(filename=VECTOR_FILE):
     """Read vectors from file, return dictionary"""
