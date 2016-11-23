@@ -1,6 +1,7 @@
 """Defines vector class and accompanying helper functions"""
 from math import sqrt
 from scipy.spatial.distance import cosine
+import numpy as np
 class Vector(object):
     """docSentstring for Vector class."""
     def __init__(self, coords):
@@ -22,9 +23,7 @@ class Vector(object):
 
     def sum(self, other):
         """Add two vectors"""
-        new_coords = []
-        for (coord1, coord2) in zip(self.coords, other.coords):
-            new_coords.append(coord1 + coord2)
+        new_coords = np.add(self.coords, other.coords)
         return Vector(new_coords)
 
 def sum_of_vectors(vector_list):
