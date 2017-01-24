@@ -15,7 +15,7 @@ class Vector(object):
             sum_of_squares += coord*coord
         return sqrt(sum_of_squares)
 
-    def cosine_similarity(self, other):
+    def similarity(self, other):
         """Return cosine_similarity between 2 vectors"""
         if len(self.coords) != len(other.coords):
             return "ERROR: Vectors not of same dimension"
@@ -33,11 +33,11 @@ def sum_of_vectors(vector_list):
         sum_vector = vector_list[i].add(sum_vector)
     return sum_vector
 
-COORDS_A = [1, 2, 3]
-COORDS_B = [1, 2, 3]
+#COORDS_A = [1, 2, 3]
+#COORDS_B = [1, 2, 3]
 
-VEC1 = Vector(COORDS_A)
-VEC2 = Vector(COORDS_B)
+#VEC1 = Vector(COORDS_A)
+#VEC2 = Vector(COORDS_B)
 
 # print('Cosine sim = ' + str(VEC1.cosine_similarity(VEC2)))
 # VEC1.sum(VEC2)
