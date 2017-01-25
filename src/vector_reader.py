@@ -1,7 +1,7 @@
 """Defines function to read vectors from file"""
-import sys
 import numpy as np
 from vector import Vector
+from utilities import show_progress
 VECTOR_FILE = '../vectors.txt'
 
 def read_vectors_from_file(filename=VECTOR_FILE):
@@ -35,12 +35,5 @@ def read_vectors_from_file(filename=VECTOR_FILE):
     show_progress(100)
     return vec_dictionary
 
-def show_progress(percent_progress):
-    sys.stdout.write('\r')
-    sys.stdout.write("[%-20s] %d%%" % ('='*int(percent_progress/5), percent_progress))
-    sys.stdout.flush()
-    if percent_progress == 100:
-        sys.stdout.write('\n')
-
-TEST = read_vectors_from_file()
-print(TEST['the'].coords)
+#TEST = read_vectors_from_file()
+#print(TEST['the'].coords)
