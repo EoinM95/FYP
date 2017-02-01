@@ -10,16 +10,23 @@ VECTOR_DICTIONARY = {}
 def main():
     """Read data"""
     #need to maintain sentence position somehow
-    vector_file = input('Enter the location of the vector file')
+    vector_file = input('Enter the location of the vector file\n')
     global VECTOR_DICTIONARY #pylint: disable = W0603
     VECTOR_DICTIONARY = read_vectors_from_file(vector_file)
-    text_file = input('Enter the filename of the text you wish to summarize')
+    text_file = input('Enter the filename of the text you wish to summarize\n')
     parsed_doc = parse_original_text(text_file)
     doc_body = parsed_doc['text']
     sentence_dict = sentence_dictionary(doc_body)
-    title_vector = []
-    keywords_vector = []
+    title_vector = clean_and_vectorize(parsed_doc['title'])
+    keywords_vector = clean_and_vectorize(parsed_doc['keywords'])
     feature_vectors = calculate_feature_vectors(sentence_dict, title_vector, keywords_vector)
+    print(feature_vectors[0])
+
+def clean_and_vectorize(sentence):
+    """Remove stop words and find vector"""
+    tokens = tokenize(sentence)
+    tokens = remove_stop_words(tokens)
+    return sentence_vector(tokens)
 
 def sentence_dictionary(doc_body):
     """Return sentence data structure containing their vectors"""
