@@ -35,6 +35,7 @@ def sentence_dictionary(doc_body):
     for sentence in sentence_list:
         tokens = tokenize(sentence)
         tokens = remove_stop_words(tokens)
+        print("Token list: ", tokens)
         sentence_vec = sentence_vector(tokens)
         dictionary_entry = {'sentence_vec': sentence_vec, 'tokens': tokens}
         sentence_dict[sentence] = dictionary_entry
@@ -44,6 +45,9 @@ def sentence_vector(sentence):
     """Will return vector which represents sentence"""
     word_vec_list = []
     for word in sentence:
-        word_vec = VECTOR_DICTIONARY[word]
-        word_vec_list.append(word_vec)
+        if word in VECTOR_DICTIONARY:
+            word_vec = VECTOR_DICTIONARY[word]
+            word_vec_list.append(word_vec)
+        else:
+            print('Error, couldn\'t find word: ', word)
     return sum_of_vectors(word_vec_list)

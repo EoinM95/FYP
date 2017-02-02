@@ -13,22 +13,30 @@ def parse_original_text(filename, style='wsj'):
     if style == 'wsj':
         title = root.find('HL').text
         keywords = root.find('IN').text
-    return {'text': clean_input(text, 'body', style),
-            'title': clean_input(title, 'title', style),
-            'keywords': clean_input(keywords, 'keywords', style)}
+    #Might just use wsj texts as they have keywords
+    return {'text': clean_input(text, 'body'),
+            'title': clean_input(title, 'title'),
+            'keywords': clean_input(keywords, 'keywords')}
 
 
-def clean_input(text, section='body', style='wsj'):
+def clean_input(text, section='body'):
     """Remove unnecessary chars from input"""
     return_text = text
     if section == 'title':
-        if style == 'wsj':
-            text = re.split(r'\s----\s', text)
-            print(text)
-            return_text = text[0]
+        text = re.split(r'\s----\s', text)
+        return_text = text[0]
+    return_text = re.sub(r'(,|\'|\"|;|- )', ' ', return_text)
+    if section == 'keywords':
+        return_text = re.sub(r'\([A-Z]*\)', '', return_text)
+    else:
+        return_text = re.sub(r'\(', ' ', return_text)
+        return_text = re.sub(r'\)', ' ', return_text)
+    return_text = re.sub(r'(\!|\?)', '.', return_text)
     return return_text
 
-PARSED = parse_original_text('C:\\Users\\eoinm\\FYP\\formal\\training\\formal-training\\categorization\\US-Foreign-Policy\\299\\docs\\WSJ911213-0036')
-print('title = ', PARSED['title'])
+
+#TEST_FILE = '..\\formal\\training\\formal-training\\categorization\\US-Foreign-Policy\\299\\docs\\WSJ911213-0036'
+#PARSED = parse_original_text(TEST_FILE)
+#print('title = ', PARSED['title'])
 #print('text = ', PARSED['text'])
 #print('keywords = ', PARSED['keywords'])
