@@ -31,17 +31,19 @@ def compute_tf_isfs_for_text(sentence_list):
     num_of_sentences = len(sentence_list)
     sentence_word_counts = {}
     word_appearances = {}
-    for sentence in sentence_list:
-        tokens = sentence['tokens']
+    for sentence_entry in sentence_list:
+        sentence = sentence_entry['sentence']
+        tokens = sentence_entry['tokens']
         word_counter = Counter(tokens)
-        sentence_word_counts[tokens] = word_counter
+        sentence_word_counts[sentence] = word_counter
         for word in word_counter.keys():
             word_appearances[word] = word_appearances.get(word, 0) + 1
-    for sentence in sentence_list:
+    for sentence_entry in sentence_list:
         word_tfisfs = []
-        tokens = sentence['tokens']
+        sentence = sentence_entry['sentence']
+        tokens = sentence_entry['tokens']
         for word in tokens:
-            tf = sentence_word_counts[tokens][word] #pylint: disable = C0103
+            tf = sentence_word_counts[sentence][word] #pylint: disable = C0103
             num_of_s_containing_word = word_appearances[word]
             isf = log2(num_of_sentences/num_of_s_containing_word)
             word_tfisfs.append(tf*isf)

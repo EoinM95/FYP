@@ -37,7 +37,7 @@ def create_sentence_list(doc_body):
         tokens = tokenize(sentence)
         tokens = remove_stop_words(tokens)
         sentence_vec = []#sentence_vector(tokens)
-        dictionary_entry = {'sentence_vec': sentence_vec, 'tokens': tokens}
+        dictionary_entry = {'sentence': sentence, 'sentence_vec': sentence_vec, 'tokens': tokens}
         sentence_list.append(dictionary_entry)
     return sentence_list
 
