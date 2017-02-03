@@ -1,6 +1,5 @@
 """Defines function to read vectors from file"""
 import numpy as np
-from vector import Vector
 from utilities import show_progress
 VECTOR_FILE = '../vectors.txt'
 
@@ -30,8 +29,7 @@ def read_vectors_from_file(filename=VECTOR_FILE):
                     string_bytes += bytearray(next_byte)
             del string_bytes
             vec_coords = np.fromstring(stream.read(binary_len), dtype='float32', count=vector_dimensions)
-            next_vec = Vector(vec_coords)
-            vec_dictionary[word] = next_vec
+            vec_dictionary[word] = vec_coords
     show_progress(100)
     return vec_dictionary
 

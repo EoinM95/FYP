@@ -1,5 +1,6 @@
 """Handy stuff for displaying, reading etc."""
 import sys
+import numpy as np
 def show_progress(percent_progress):
     """Show a progress bar in the terminal"""
     sys.stdout.write('\r')
@@ -7,6 +8,13 @@ def show_progress(percent_progress):
     sys.stdout.flush()
     if percent_progress == 100:
         sys.stdout.write('\n')
+
+def sum_of_vectors(vector_list):
+    """Add a list of vectors, return vector representing the sum"""
+    sum_vector = vector_list[0]
+    for i in range(1, len(vector_list)-1):
+        sum_vector = np.add(sum_vector, vector_list[i])
+    return sum_vector
 
 
 def remove_stop_words(word_list):

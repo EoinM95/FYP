@@ -32,6 +32,10 @@ def clean_input(text, section='body'):
         return_text = re.sub(r'\(', ' ', return_text)
         return_text = re.sub(r'\)', ' ', return_text)
     return_text = re.sub(r'(\!|\?)', '.', return_text)
+    return_text = re.sub(r'\s', ' ', return_text)
+    #replace U.S.A. with USA etc
+    return_text = re.sub(r'(([A-Za-z])\.)(([A-Za-z])\.)(([A-Za-z])\.)?', r'\2\4\6', return_text)
+    return_text = re.sub(r'( )+', ' ', return_text)
     return return_text
 
 

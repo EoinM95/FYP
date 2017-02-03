@@ -1,6 +1,6 @@
 """DocString for sentence_splitter """
 import re
-SENTENCE_PATTERN = r'(?<!..Mr|.Mrs|..Dr|Prof)\. (?=[A-Z])'
+SENTENCE_PATTERN = r'(?<!..Mr|.Mrs|..Dr|Prof|.Neb|.Nev)\. (?=[A-Z])'
 TOKEN_PATTERN = "(?<=[A-Za-z0-9]) "
 def split(text):
     """Splits text into sentences, returns list"""
@@ -11,6 +11,8 @@ def tokenize(sentence):
     sentence = re.sub(r'(\.|[0-9]*)', '', sentence)
     sentence = re.sub(r'(\n|\r\n)', ' ', sentence)
     sentence = sentence.strip()
+    sentence = re.sub(r'\s', ' ', sentence)
+    sentence = re.sub(r'  ', ' ', sentence)
     return re.split(TOKEN_PATTERN, sentence.lower())
 
 #print(split('Hello. World.'))
