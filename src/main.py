@@ -1,21 +1,42 @@
 """Read a corpus, check there's a vector for everything"""
+import re
+import os
 from vector_reader import read_vectors_from_file
-from corpus_parser import parse_original_text
+from corpus_parser import parse_original_text, parse_scored_text
 from sentence_splitter import split, tokenize
 from utilities import remove_stop_words, sum_of_vectors
 from features import calculate_feature_vectors
-VECTOR_DICTIONARY = {}
 
-def main():
-    """Read data"""
-    #need to maintain sentence position somehow
-    #vector_file = input('Enter the location of the vector file\n')
-    vector_file = '..\\GoogleNews-vectors-negative300.bin'
-    global VECTOR_DICTIONARY #pylint: disable = W0603
-    VECTOR_DICTIONARY = read_vectors_from_file(vector_file)
-    #text_file = input('Enter the filename of the text you wish to summarize\n')
-    text_file = '..\\formal\\training\\formal-training\\categorization\\US-Foreign-Policy\\299\\docs\\WSJ911213-0036'
-    parsed_doc = parse_original_text(text_file)
+VECTOR_DICTIONARY = {}
+VECTOR_FILE = '..\\GoogleNews-vectors-negative300.bin'
+SCORED_TEST_DIRECTORY = '..\\composite_summaries\\tipster-composite-summaries\\'
+ST_DIRECT_PATTERN = r'\\composite_summaries\\tipster-composite-summaries\\'
+ORIGINALS_DIRECT_PATTERN = r'\\formal\\test\\formal-test\\'
+FILE_NAME_PATTERN = r'(?P<file_name>WSJ[0-9]+-[0-9]+)(?P<extension>\.sents\.scored)'
+
+
+def train():
+    """Read in vectors, read in all scored summaries and corresponding originals for title+keywords
+    Then calculate feature vectors for every sentence in every text"""
+    #global VECTOR_DICTIONARY #pylint: disable = W0603
+    #VECTOR_DICTIONARY = read_vectors_from_file(VECTOR_FILE)
+    file_regex = re.compile(FILE_NAME_PATTERN)
+    directory_regex = re.compile(ST_DIRECT_PATTERN)
+    for subdir, dirs, files in os.walk(SCORED_TEST_DIRECTORY):
+        for file in files:
+            match = file_regex.match(file)
+            if match:
+                scored_filepath = subdir + os.sep + file
+                original_file = match.group('file_name')
+                original_directory = directory_regex.sub(ORIGINALS_DIRECT_PATTERN, subdir)
+                original_filepath = original_directory+os.sep+original_file
+                print(os.path.isfile(scored_filepath) and os.path.isfile(original_filepath))
+            #print (filepath)
+    #parse_and_featurize_file(text_file)
+
+def parse_and_featurize_file(filename):
+    """Parse file and create feature_vectors for each of its sentences"""
+    parsed_doc = parse_original_text(filename)
     doc_body = parsed_doc['text']
     sentence_list = create_sentence_list(doc_body)
     title_vector = clean_and_vectorize(parsed_doc['title'])
@@ -24,8 +45,7 @@ def main():
         keywords_vector = []
     else:
         keywords_vector = clean_and_vectorize(parsed_doc['keywords'])
-    feature_vectors = calculate_feature_vectors(sentence_list, title_vector, keywords_vector, has_keywords)
-    print(feature_vectors[0])
+    return calculate_feature_vectors(sentence_list, title_vector, keywords_vector, has_keywords)
 
 def clean_and_vectorize(sentence):
     """Remove stop words and find vector"""
@@ -56,4 +76,4 @@ def sentence_vector(sentence):
         else:
             print('Error, couldn\'t find word: ', word)
     return sum_of_vectors(word_vec_list)
-main()
+train()

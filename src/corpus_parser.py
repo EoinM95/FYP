@@ -53,7 +53,6 @@ def parse_scored_text(filename, style='wsj'):
             fixed_score = 0
         else:
             fixed_score = len(fixed_score.split(','))
-        print('best_score', best_score, 'fixed_score', fixed_score)
         sentences.append({'sentence': sentence,
                           'best_score': best_score, 'fixed_score': fixed_score})
     return sentences
@@ -77,8 +76,8 @@ def clean_input(text, section='body'):
     return_text = re.sub(r'( )+', ' ', return_text)
     return return_text
 
-SCORED_TEST_FILE = '..\\composite_summaries\\tipster-composite-summaries\\categorization\\Global-Economy\\291\\docs\\WSJ900406-0086.sents.scored'
-SCORE_PARSED = parse_scored_text(SCORED_TEST_FILE)
+#SCORED_TEST_FILE = '..\\composite_summaries\\tipster-composite-summaries\\categorization\\Global-Economy\\291\\docs\\WSJ900406-0086.sents.scored'
+#SCORE_PARSED = parse_scored_text(SCORED_TEST_FILE)
 #TEST_FILE = '..\\formal\\training\\formal-training\\categorization\\US-Foreign-Policy\\299\\docs\\WSJ911213-0036'
 #PARSED = parse_original_text(TEST_FILE)
 #print('title = ', PARSED['title'])
