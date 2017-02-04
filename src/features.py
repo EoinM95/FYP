@@ -4,24 +4,28 @@ from collections import Counter
 from scipy.spatial.distance import cosine
 import numpy as np
 
-#feature_vec = [tf*isf, sim_to_title, sim_to_keywords, centroid_cohesion, sentence_cohesion]
-def calculate_feature_vectors(sentence_list, title_vector, keywords_vector):
+#feature_vec = [tf*isf, sim_to_title, centroid_cohesion, sentence_cohesion, sim_to_keywords]
+def calculate_feature_vectors(sentence_list, title_vector, keywords_vector, has_keywords=True):
     """Calculate the normalised feature vector for every sentence"""
     feature_vectors = compute_tf_isfs_for_text(sentence_list)
     sentence_vectors = []
-    for i in range(len(sentence_list)):
-        sentence = sentence_list[i]
+    for sentence in sentence_list:
         sentence_vectors.append(sentence['sentence_vec'])
-    #centroid_cohesion_values = sentence_2_centroid_cohesion(sentence_vectors)
-    #sentence_cohesion_values = senetence_2_sentence_cohesion(sentence_vectors)
-    #for i in range(len(sentence_vectors)):
-        #sentence_vector = sentence_vectors[i]
-        #feature_vector = np.array(feature_vectors[i])
-        #feature_vector = np.append(feature_vector, values=similairty_to_title(sentence_vector, title_vector))
-        #feature_vector = np.append(feature_vector, values=similairty_to_keywords(sentence_vector, keywords_vector))
-        #feature_vector = np.append(feature_vector, values=centroid_cohesion_values[i])
-        #feature_vector = np.append(feature_vector, values=sentence_cohesion_values[i])
-        #feature_vectors[i] = feature_vector
+    centroid_cohesion_values = sentence_2_centroid_cohesion(sentence_vectors)
+    sentence_cohesion_values = senetence_2_sentence_cohesion(sentence_vectors)
+    for i in range(len(sentence_vectors)):
+        sentence_vector = sentence_vectors[i]
+        feature_vector = np.array(feature_vectors[i])
+        sim_to_title = similairty_to_title(sentence_vector, title_vector)
+        feature_vector = np.append(feature_vector, values=sim_to_title)
+        centroid_cohesion = centroid_cohesion_values[i]
+        feature_vector = np.append(feature_vector, values=centroid_cohesion)
+        sentence_cohesion = sentence_cohesion_values[i]
+        feature_vector = np.append(feature_vector, values=sentence_cohesion)
+        if has_keywords:
+            sim_to_keywords = similairty_to_keywords(sentence_vector, keywords_vector)
+            feature_vector = np.append(feature_vector, values=sim_to_keywords)
+        feature_vectors[i] = feature_vector
     return feature_vectors
 
 def compute_tf_isfs_for_text(sentence_list):
@@ -49,7 +53,7 @@ def compute_tf_isfs_for_text(sentence_list):
             word_tfisfs.append(tf*isf)
         sentence_results.append([np.mean(np.array(word_tfisfs))])
     results = np.array(sentence_results)
-    return results#(results / results.max(axis=0)).tolist() #pylint: disable = E1101
+    return (results / results.max(axis=0)).tolist() #pylint: disable = E1101
 
 
 def similairty_to_title(sentence_vec, title_vector):

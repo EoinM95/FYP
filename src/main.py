@@ -10,24 +10,28 @@ def main():
     """Read data"""
     #need to maintain sentence position somehow
     #vector_file = input('Enter the location of the vector file\n')
-    #vector_file = '..\\GoogleNews-vectors-negative300.bin'
-    #global VECTOR_DICTIONARY #pylint: disable = W0603
-    #VECTOR_DICTIONARY = read_vectors_from_file(vector_file)
+    vector_file = '..\\GoogleNews-vectors-negative300.bin'
+    global VECTOR_DICTIONARY #pylint: disable = W0603
+    VECTOR_DICTIONARY = read_vectors_from_file(vector_file)
     #text_file = input('Enter the filename of the text you wish to summarize\n')
     text_file = '..\\formal\\training\\formal-training\\categorization\\US-Foreign-Policy\\299\\docs\\WSJ911213-0036'
     parsed_doc = parse_original_text(text_file)
     doc_body = parsed_doc['text']
     sentence_list = create_sentence_list(doc_body)
     title_vector = clean_and_vectorize(parsed_doc['title'])
-    keywords_vector = clean_and_vectorize(parsed_doc['keywords'])
-    feature_vectors = calculate_feature_vectors(sentence_list, title_vector, keywords_vector)
-    print(feature_vectors, '\n*******************************************************\n')
+    has_keywords = parsed_doc['has_keywords']
+    if not has_keywords:
+        keywords_vector = []
+    else:
+        keywords_vector = clean_and_vectorize(parsed_doc['keywords'])
+    feature_vectors = calculate_feature_vectors(sentence_list, title_vector, keywords_vector, has_keywords)
+    print(feature_vectors[0])
 
 def clean_and_vectorize(sentence):
     """Remove stop words and find vector"""
     tokens = tokenize(sentence)
     tokens = remove_stop_words(tokens)
-    return []#sentence_vector(tokens)
+    return sentence_vector(tokens)
 
 def create_sentence_list(doc_body):
     """Return sentence data structure containing their vectors"""
@@ -36,7 +40,7 @@ def create_sentence_list(doc_body):
     for sentence in sentences:
         tokens = tokenize(sentence)
         tokens = remove_stop_words(tokens)
-        sentence_vec = []#sentence_vector(tokens)
+        sentence_vec = sentence_vector(tokens)
         dictionary_entry = {'sentence': sentence, 'sentence_vec': sentence_vec, 'tokens': tokens}
         sentence_list.append(dictionary_entry)
     return sentence_list
