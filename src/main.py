@@ -18,11 +18,14 @@ FILE_NAME_PATTERN = r'(?P<file_name>WSJ[0-9]+-[0-9]+)(?P<extension>\.sents\.scor
 def train():
     """Read in vectors, read in all scored summaries and corresponding originals for title+keywords
     Then calculate feature vectors for every sentence in every text"""
-    #global VECTOR_DICTIONARY #pylint: disable = W0603
-    #VECTOR_DICTIONARY = read_vectors_from_file(VECTOR_FILE)
+    global VECTOR_DICTIONARY #pylint: disable = W0603
+    VECTOR_DICTIONARY = read_vectors_from_file(VECTOR_FILE)
+    file_counter = 0
     file_regex = re.compile(FILE_NAME_PATTERN)
     directory_regex = re.compile(ST_DIRECT_PATTERN)
-    for subdir, dirs, files in os.walk(SCORED_TEST_DIRECTORY):
+    for subdir, dirs, files in os.walk(SCORED_TEST_DIRECTORY): #pylint: disable = W0612
+        if file_counter > 20:
+            break
         for file in files:
             match = file_regex.match(file)
             if match:
@@ -30,11 +33,21 @@ def train():
                 original_file = match.group('file_name')
                 original_directory = directory_regex.sub(ORIGINALS_DIRECT_PATTERN, subdir)
                 original_filepath = original_directory+os.sep+original_file
-                print(os.path.isfile(scored_filepath) and os.path.isfile(original_filepath))
-            #print (filepath)
-    #parse_and_featurize_file(text_file)
+                if os.path.isfile(original_filepath):
+                    file_counter = file_counter + 1
+                    print('Started processing file no ', file_counter) # can do these in parallel processes
+                    tag_type = 'categ'
+                    if 'adhoc' in scored_filepath:
+                        tag_type = 'adhoc'
+                    processed = parse_and_featurize_from_scored(scored_filepath,
+                                                                original_filepath, tag_type)
+                    feature_vectors = processed['feature_vectors']
+                    scores_list = processed['scores_list']
+                else:
+                    print('Couldn\'t find matching original for scored summary with filename: ', scored_filepath)
+    print(file_counter)
 
-def parse_and_featurize_file(filename):
+def parse_and_featurize_from_orig(filename):
     """Parse file and create feature_vectors for each of its sentences"""
     parsed_doc = parse_original_text(filename)
     doc_body = parsed_doc['text']
@@ -47,11 +60,41 @@ def parse_and_featurize_file(filename):
         keywords_vector = clean_and_vectorize(parsed_doc['keywords'])
     return calculate_feature_vectors(sentence_list, title_vector, keywords_vector, has_keywords)
 
-def clean_and_vectorize(sentence):
-    """Remove stop words and find vector"""
+def parse_and_featurize_from_scored(scored_file, original_file, tag_type='categ'):
+    """Parse file and create feature_vectors for each of its sentences"""
+    scored_sentences = parse_scored_text(scored_file, tag_type)
+    sentence_list = []
+    scores_list = []
+    for sentence in scored_sentences:
+        list_entry = tokenize_and_vectorize(sentence['sentence'])
+        if list_entry != 'Do not include':
+            sentence_list.append(list_entry)
+            scores_list.append(sentence['best_score'])
+    original_parsed = parse_original_text(original_file)
+    title_vector = clean_and_vectorize(original_parsed['title'])
+    has_keywords = False#original_parsed['has_keywords']
+    if not has_keywords:
+        keywords_vector = []
+    else:
+        keywords_vector = clean_and_vectorize(original_parsed['keywords'])
+    feature_vectors = calculate_feature_vectors(sentence_list, title_vector, keywords_vector, has_keywords)
+    return {'feature_vectors': feature_vectors, 'scores_list': scores_list}
+
+def tokenize_and_vectorize(sentence):
+    """Return tokens and vector for sentence"""
     tokens = tokenize(sentence)
     tokens = remove_stop_words(tokens)
-    return sentence_vector(tokens)
+    vector = sentence_vector(tokens)
+    if vector == 'Do not include':
+        return vector
+    return {'sentence': sentence, 'tokens':tokens, 'sentence_vec': vector}
+
+def clean_and_vectorize(sentence):
+    """Remove stop words and find vector"""
+    vector = tokenize_and_vectorize(sentence)
+    if vector == 'Do not include':
+        return vector
+    return vector['sentence_vec']
 
 def create_sentence_list(doc_body):
     """Return sentence data structure containing their vectors"""
@@ -61,8 +104,8 @@ def create_sentence_list(doc_body):
         tokens = tokenize(sentence)
         tokens = remove_stop_words(tokens)
         sentence_vec = sentence_vector(tokens)
-        dictionary_entry = {'sentence': sentence, 'sentence_vec': sentence_vec, 'tokens': tokens}
-        sentence_list.append(dictionary_entry)
+        list_entry = {'sentence': sentence, 'sentence_vec': sentence_vec, 'tokens': tokens}
+        sentence_list.append(list_entry)
     return sentence_list
 
 def sentence_vector(sentence):
@@ -75,5 +118,7 @@ def sentence_vector(sentence):
             word_vec_list.append(word_vec)
         else:
             print('Error, couldn\'t find word: ', word)
+    if not word_vec_list:
+        return 'Do not include'
     return sum_of_vectors(word_vec_list)
 train()
