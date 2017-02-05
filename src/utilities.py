@@ -1,6 +1,9 @@
 """Handy stuff for displaying, reading etc."""
 import sys
 import numpy as np
+
+DO_NOT_INCLUDE = -1
+
 def show_progress(percent_progress):
     """Show a progress bar in the terminal"""
     sys.stdout.write('\r')

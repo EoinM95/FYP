@@ -1,7 +1,10 @@
 """Read in original texts and reference summaries from corpus"""
 import xml.etree.ElementTree as ET
 import re
-PUNCTUATION_PATTERN = r'(,|\'|\"|;|&|-|:|\$)'
+from utilities import DO_NOT_INCLUDE
+PUNCTUATION_PATTERN = r'[,\'\";&-:\$%`/\\{}\*]'
+HEADER_A_START = '<excludedsys'
+HEADER_B_START = '<sysjudg_'
 PUNCTUATION_REGEX = re.compile(PUNCTUATION_PATTERN)
 BRACKETED_KEYWORDS_PATTERN = r'\([A-Z]*\)'
 BRACKETED_KEYWORDS_REGEX = re.compile(BRACKETED_KEYWORDS_PATTERN)
@@ -30,7 +33,7 @@ def parse_original_text(filename, style='wsj'):
             keywords = in_node.text
         if co_node is not None:
             keywords = keywords + ' ' + co_node.text
-    #Might just use wsj texts as they have keywords
+
     return {'text': clean_input(text, 'body'),
             'title': clean_input(title, 'title'),
             'has_keywords': has_keywords,
@@ -39,13 +42,11 @@ def parse_original_text(filename, style='wsj'):
 def parse_scored_text(filename, tag_type='categ'):
     """Parse a scored summary of a text from a file"""
     xml_string = '<DOC>'
-    line_count = 0
     header_lines = []
     with open(filename) as stream:
         for line in stream:
-            if line_count < 4:
+            if line.startswith(HEADER_A_START) or line.startswith(HEADER_B_START):
                 header_lines.append(line)
-                line_count = line_count + 1
             else:
                 line = re.sub(r'[\[\]]', '\"', line)
                 line = re.sub(r'&(?!amp;)', r'&amp;', line)
@@ -78,6 +79,8 @@ def parse_scored_text(filename, tag_type='categ'):
         sentences.append({'sentence': clean_input(sentence),
                           'best_score': best_score, 'fixed_score': fixed_score})
 
+    if max_best_score == 0:
+        return DO_NOT_INCLUDE
     for sentence in sentences:
         sentence['best_score'] = sentence['best_score'] / max_best_score
         sentence['fixed_score'] = sentence['fixed_score'] / max_fixed_score
