@@ -1,11 +1,13 @@
 """Read a corpus, check there's a vector for everything"""
 import re
 import os
+import numpy as np
 from vector_reader import read_vectors_from_file
 from corpus_parser import parse_original_text, parse_scored_text
 from sentence_splitter import split, tokenize
 from utilities import remove_stop_words, sum_of_vectors, DO_NOT_INCLUDE
 from features import calculate_feature_vectors
+from neural_net import NeuralNetwork
 
 VECTOR_DICTIONARY = {}
 MISSING_WORDS = []
@@ -18,19 +20,42 @@ FILE_NAME_PATTERN = r'(?P<file_name>WSJ[0-9]+-[0-9]+)(?P<extension>\.sents\.scor
 
 
 
-def train():
+def initialise():
     """Read in vectors, read in all scored summaries and corresponding originals for title+keywords
     Then calculate feature vectors for every sentence in every text"""
     global VECTOR_DICTIONARY #pylint: disable = W0603
     VECTOR_DICTIONARY = read_vectors_from_file(VECTOR_FILE)
-    processed = find_files_and_process()
-    print('len(processed)', len(processed))
-    feature_vectors = processed[0]['feature_vectors']
-    scores_list = processed[0]['scores_list']
-    print('len(feature_vectors[0])', len(feature_vectors[0]))
+    processed_corpus = find_files_and_process()
     with open(MISSING_WORDS_FILE, 'w') as write_stream:
         for missing_word in MISSING_WORDS:
             write_stream.write(missing_word +'\n')
+    corpus_size = len(processed_corpus)
+    split_size = int(corpus_size/2)
+    neural_net = train(processed_corpus[:split_size])
+    test(neural_net, processed_corpus[split_size:])
+
+def train(processed_corpus):
+    """Create and train neural network"""
+
+    input_matrix = []
+    output_vector = []
+    for corpus_entry in processed_corpus:
+        feature_matrix = corpus_entry['feature_vectors']
+        for feature_vector in feature_matrix:
+            input_matrix.append(feature_vector)
+        scores_vector = corpus_entry['scores_list']
+        for score in scores_vector:
+            output_vector.append(score)
+    input_matrix = np.array(input_matrix)
+    output_vector = np.array(output_vector)
+    neural_net = NeuralNetwork(input_matrix, output_vector)
+    for j in range(1000000): #pylint: disable = W0612
+        neural_net.train()
+    return neural_net
+
+def test(neural_net, processed_corpus):
+    """Test neural network"""
+    print("TO DO")
 
 def find_files_and_process():
     """Find all files which are usable and parse them, return feature vectors and scores"""
@@ -47,8 +72,8 @@ def find_files_and_process():
                 original_directory = directory_regex.sub(ORIGINALS_DIRECT_PATTERN, subdir)
                 original_filepath = original_directory+os.sep+original_file
                 if os.path.isfile(original_filepath):
-                    file_counter = file_counter + 1
-                    print('Started processing file no ', file_counter)
+                    file_counter += 1
+                    print('Started processing file no ', file_counter, flush=True)
                     tag_type = 'categ'
                     if 'adhoc' in scored_filepath:
                         tag_type = 'adhoc'
@@ -57,11 +82,11 @@ def find_files_and_process():
                     if processed is not DO_NOT_INCLUDE:
                         features_and_scores.append(processed)
                     else:
-                        print('Excluding file ', file, 'reseting file counter')
+                        print('Excluding file ', file, 'reseting file counter', flush=True)
                         file_counter = file_counter - 1
                 else:
                     print('Couldn\'t find matching original for scored summary: ', scored_filepath)
-    print('Found and processed ', file_counter, ' usable texts and scored summaries')
+    print('Found and processed ', file_counter, ' usable texts and scored summaries', flush=True)
     return features_and_scores
 
 def parse_and_featurize_from_orig(filename):
@@ -97,16 +122,16 @@ def parse_and_featurize_from_scored(scored_file, original_file, tag_type='categ'
         list_entry = tokenize_and_vectorize(sentence['sentence'])
         if list_entry != DO_NOT_INCLUDE:
             sentence_list.append(list_entry)
-            scores_list.append(sentence['best_score'])
+            scores_list.append([sentence['best_score']])
     feature_vectors = calculate_feature_vectors(sentence_list, title_vector,
                                                 keywords_vector)
-    return {'feature_vectors': feature_vectors, 'scores_list': scores_list}
+    return {'feature_vectors': feature_vectors, 'scores_list': np.array(scores_list)}
 
 def tokenize_and_vectorize(sentence):
     """Return tokens and vector for sentence"""
     tokens = tokenize(sentence)
     tokens = remove_stop_words(tokens)
-    vector = sentence_vector(tokens)
+    vector = sentence_vector(tokens, VECTOR_DICTIONARY)
     if vector is DO_NOT_INCLUDE:
         return vector
     return {'sentence': sentence, 'tokens':tokens, 'sentence_vec': vector}
@@ -128,17 +153,19 @@ def create_sentence_list(doc_body):
             sentence_list.append(list_entry)
     return sentence_list
 
-def sentence_vector(sentence):
+def sentence_vector(sentence, vector_dictionary):
     """Will return vector which represents sentence"""
     word_vec_list = []
     for word in sentence:
         word = word.strip()
-        if word in VECTOR_DICTIONARY:
-            word_vec = VECTOR_DICTIONARY[word]
+        if word in vector_dictionary:
+            word_vec = vector_dictionary[word]
             word_vec_list.append(word_vec)
         elif word not in MISSING_WORDS:
             MISSING_WORDS.append(word)
     if not word_vec_list:
         return DO_NOT_INCLUDE
     return sum_of_vectors(word_vec_list)
-train()
+
+if __name__ == '__main__':
+    initialise()

@@ -35,7 +35,7 @@ def parse_original_text(filename, style='wsj'):
         for line in stream:
             line = SQ_BRACKET_REGEX.sub('\"', line)
             line = XML_AMP_REGEX.sub(r'&amp;', line)
-            xml_string = xml_string + line
+            xml_string += line
     root = ET.fromstring(xml_string)
     text = root.find('TEXT').text
     title = ''
@@ -67,7 +67,7 @@ def parse_scored_text(filename, tag_type='categ'):
             else:
                 line = SQ_BRACKET_REGEX.sub('\"', line)
                 line = XML_AMP_REGEX.sub(r'&amp;', line)
-                xml_string = xml_string + line
+                xml_string += line
     xml_string = xml_string + '</DOC>'
     root = ET.fromstring(xml_string)
     sentences = []

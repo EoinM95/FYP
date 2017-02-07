@@ -24,7 +24,7 @@ def calculate_feature_vectors(sentence_list, title_vector, keywords_vector):
         sim_to_keywords = similairty_to_keywords(sentence_vector, keywords_vector)
         feature_vector = np.append(feature_vector, values=sim_to_keywords)
         feature_vectors[i] = feature_vector
-    return feature_vectors
+    return np.array(feature_vectors)
 
 def compute_tf_isfs_for_text(sentence_list):
     """Compute the mean term frequency*inverse sentence frequency for
@@ -91,7 +91,7 @@ def senetence_2_sentence_cohesion(sentence_vectors):
     for i in range(len(sentence_vectors)-1):
         for j in range(i, len(sentence_vectors)):
             sim = similarity(sentence_vectors[i], sentence_vectors[j])
-            cohesion_values[i] = cohesion_values[i] + sim
-            cohesion_values[j] = cohesion_values[j] + sim
+            cohesion_values[i] += sim
+            cohesion_values[j] += sim
     cohesion_values = np.array(cohesion_values)
     return  cohesion_values/cohesion_values.max()
