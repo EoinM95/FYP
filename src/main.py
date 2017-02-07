@@ -12,7 +12,7 @@ from neural_net import NeuralNetwork
 VECTOR_DICTIONARY = {}
 MISSING_WORDS = []
 MISSING_WORDS_FILE = 'missing_words.txt'
-VECTOR_FILE = '..\\GoogleNews-vectors-negative300.bin'
+VECTOR_FILE = '..\\vectors.txt'#'..\\GoogleNews-vectors-negative300.bin'
 SCORED_TEST_DIRECTORY = '..\\composite_summaries\\tipster-composite-summaries\\'
 ST_DIRECT_PATTERN = r'\\composite_summaries\\tipster-composite-summaries\\'
 ORIGINALS_DIRECT_PATTERN = r'\\formal\\test\\formal-test\\'
@@ -36,12 +36,14 @@ def initialise():
 
 def train(processed_corpus):
     """Create and train neural network"""
-
     input_matrix = []
     output_vector = []
     for corpus_entry in processed_corpus:
         feature_matrix = corpus_entry['feature_vectors']
-        for feature_vector in feature_matrix:
+        for i, feature_vector in enumerate(feature_matrix):
+            position = i/len(feature_matrix)
+            feature_vector = np.append(feature_vector, [position])
+            #print(feature_vector)
             input_matrix.append(feature_vector)
         scores_vector = corpus_entry['scores_list']
         for score in scores_vector:
@@ -49,7 +51,8 @@ def train(processed_corpus):
     input_matrix = np.array(input_matrix)
     output_vector = np.array(output_vector)
     neural_net = NeuralNetwork(input_matrix, output_vector)
-    for j in range(1000000): #pylint: disable = W0612
+    print('Starting NeuralNetwork training...', flush=True)
+    for i in range(1000000): #pylint: disable = W0612
         neural_net.train()
     return neural_net
 
