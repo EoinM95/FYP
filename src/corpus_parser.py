@@ -2,6 +2,7 @@
 import xml.etree.ElementTree as ET
 import re
 from utilities import DO_NOT_INCLUDE
+
 PUNCTUATION_PATTERN = r'[,\'\";&-:\$%`/\\{}\*]'
 HEADER_A_START = '<excludedsys'
 HEADER_B_START = '<sysjudg_'
@@ -10,14 +11,30 @@ BRACKETED_KEYWORDS_PATTERN = r'\([A-Z]*\)'
 BRACKETED_KEYWORDS_REGEX = re.compile(BRACKETED_KEYWORDS_PATTERN)
 BRACKETS_PATTERN = r'[\(\)]'
 BRACKETS_REGEX = re.compile(BRACKETS_PATTERN)
+#replace U.S.A. with USA etc
+ABBREVIATION_PATTERN = r'(([A-Za-z])\.)(([A-Za-z])\.)(([A-Za-z])\.)?'
+ABBREVIATION_REGEX = re.compile(ABBREVIATION_PATTERN)
+SENTENCE_END_PATTERN = r'(\!|\?)'
+SENTENCE_END_REGEX = re.compile(SENTENCE_END_PATTERN)
+TITLE_DIVIDER_PATTERN = r'\s----\s'
+TITLE_DIVIDER_REGEX = re.compile(TITLE_DIVIDER_PATTERN)
+MULTIPLE_SPACES_PATTERN = r'( )+'
+MULTIPLE_SPACES_REGEX = re.compile(MULTIPLE_SPACES_PATTERN)
+WHITESPACE_PATTERN = r'\s'
+WHITESPACE_REGEX = re.compile(WHITESPACE_PATTERN)
+
+XML_AMP_PATTERN = r'&(?!amp;)'
+XML_AMP_REGEX = re.compile(XML_AMP_PATTERN)
+SQ_BRACKET_PATTERN = r'[\[\]]'
+SQ_BRACKET_REGEX = re.compile(SQ_BRACKET_PATTERN)
 
 def parse_original_text(filename, style='wsj'):
     """Read in original text"""
     xml_string = ''
     with open(filename) as stream:
         for line in stream:
-            line = re.sub(r'[\[\]]', '\"', line)
-            line = re.sub(r'&(?!amp;)', r'&amp;', line)
+            line = SQ_BRACKET_REGEX.sub('\"', line)
+            line = XML_AMP_REGEX.sub(r'&amp;', line)
             xml_string = xml_string + line
     root = ET.fromstring(xml_string)
     text = root.find('TEXT').text
@@ -48,15 +65,11 @@ def parse_scored_text(filename, tag_type='categ'):
             if line.startswith(HEADER_A_START) or line.startswith(HEADER_B_START):
                 header_lines.append(line)
             else:
-                line = re.sub(r'[\[\]]', '\"', line)
-                line = re.sub(r'&(?!amp;)', r'&amp;', line)
+                line = SQ_BRACKET_REGEX.sub('\"', line)
+                line = XML_AMP_REGEX.sub(r'&amp;', line)
                 xml_string = xml_string + line
     xml_string = xml_string + '</DOC>'
-    #try:
     root = ET.fromstring(xml_string)
-    #except Exception as exp:
-    #    print('Error reading file', filename)
-    #    raise exp.with_traceback("Error reading file filename")
     sentences = []
     max_best_score = 0
     max_fixed_score = 0
@@ -90,24 +103,15 @@ def clean_input(text, section='body'):
     """Remove unnecessary chars from input"""
     return_text = text
     if section == 'title':
-        text = re.split(r'\s----\s', text)
+        text = TITLE_DIVIDER_REGEX.split(text)
         return_text = text[0]
     return_text = PUNCTUATION_REGEX.sub(' ', return_text)
     if section == 'keywords':
         return_text = BRACKETED_KEYWORDS_REGEX.sub('', return_text)
     else:
         return_text = BRACKETS_REGEX.sub(' ', return_text)
-    return_text = re.sub(r'(\!|\?)', '.', return_text)
-    return_text = re.sub(r'\s', ' ', return_text)
-    #replace U.S.A. with USA etc
-    return_text = re.sub(r'(([A-Za-z])\.)(([A-Za-z])\.)(([A-Za-z])\.)?', r'\2\4\6', return_text)
-    return_text = re.sub(r'( )+', ' ', return_text)
+    return_text = SENTENCE_END_REGEX.sub('.', return_text)
+    return_text = WHITESPACE_REGEX.sub(' ', return_text)
+    return_text = ABBREVIATION_REGEX.sub(r'\2\4\6', return_text)
+    return_text = MULTIPLE_SPACES_REGEX.sub(' ', return_text)
     return return_text
-
-#SCORED_TEST_FILE = '..\\composite_summaries\\tipster-composite-summaries\\categorization\\Global-Economy\\291\\docs\\WSJ900406-0086.sents.scored'
-#SCORE_PARSED = parse_scored_text(SCORED_TEST_FILE)
-#TEST_FILE = '..\\formal\\training\\formal-training\\categorization\\US-Foreign-Policy\\299\\docs\\WSJ911213-0036'
-#PARSED = parse_original_text(TEST_FILE)
-#print('title = ', PARSED['title'])
-#print('text = ', PARSED['text'])
-#print('keywords = ', PARSED['keywords'])

@@ -5,7 +5,7 @@ from scipy.spatial.distance import cosine
 import numpy as np
 
 #feature_vec = [tf*isf, sim_to_title, centroid_cohesion, sentence_cohesion, sim_to_keywords]
-def calculate_feature_vectors(sentence_list, title_vector, keywords_vector, has_keywords=True):
+def calculate_feature_vectors(sentence_list, title_vector, keywords_vector):
     """Calculate the normalised feature vector for every sentence"""
     feature_vectors = compute_tf_isfs_for_text(sentence_list)
     sentence_vectors = []
@@ -13,8 +13,7 @@ def calculate_feature_vectors(sentence_list, title_vector, keywords_vector, has_
         sentence_vectors.append(sentence['sentence_vec'])
     centroid_cohesion_values = sentence_2_centroid_cohesion(sentence_vectors)
     sentence_cohesion_values = senetence_2_sentence_cohesion(sentence_vectors)
-    for i in range(len(sentence_vectors)):
-        sentence_vector = sentence_vectors[i]
+    for i, sentence_vector in enumerate(sentence_vectors):
         feature_vector = np.array(feature_vectors[i])
         sim_to_title = similairty_to_title(sentence_vector, title_vector)
         feature_vector = np.append(feature_vector, values=sim_to_title)
@@ -22,9 +21,8 @@ def calculate_feature_vectors(sentence_list, title_vector, keywords_vector, has_
         feature_vector = np.append(feature_vector, values=centroid_cohesion)
         sentence_cohesion = sentence_cohesion_values[i]
         feature_vector = np.append(feature_vector, values=sentence_cohesion)
-        if has_keywords:
-            sim_to_keywords = similairty_to_keywords(sentence_vector, keywords_vector)
-            feature_vector = np.append(feature_vector, values=sim_to_keywords)
+        sim_to_keywords = similairty_to_keywords(sentence_vector, keywords_vector)
+        feature_vector = np.append(feature_vector, values=sim_to_keywords)
         feature_vectors[i] = feature_vector
     return feature_vectors
 
