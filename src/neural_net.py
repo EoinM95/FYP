@@ -4,14 +4,15 @@ LEARNING_RATE = 1
 BIAS_TERM = 1
 class NeuralNetwork:
     """Class representing a trainable NeuralNetwork with one hidden layer"""
-    def __init__(self, input_matrix, output_vector, input_nodes=6):
+    def __init__(self, input_matrix, output_vector):
         self.step_number = 0
         bias_terms = [[BIAS_TERM]] * input_matrix.shape[0]
         self.input_matrix = np.append(input_matrix, bias_terms, axis=1)
         self.output_vector = output_vector
         np.random.seed(1) #pylint: disable = E1101
+        input_nodes = self.input_matrix.shape[1]
         hidden_nodes = (input_nodes + 1) * 2
-        self.input_to_hidden_synapse = 2*np.random.random((input_nodes + 1, hidden_nodes))-1
+        self.input_to_hidden_synapse = 2*np.random.random((input_nodes, hidden_nodes))-1
         self.hidden_2_output_synapse = 2*np.random.random((hidden_nodes, 1))-1
 
     def set_inputs_and_outputs(self, input_matrix, output_vector):
@@ -35,6 +36,8 @@ class NeuralNetwork:
 
     def feed(self, input_matrix):
         """Calculate outputs for given input_matrix"""
+        bias_terms = [[BIAS_TERM]] * input_matrix.shape[0]
+        input_matrix = np.append(input_matrix, bias_terms, axis=1)
         hidden_layer = sigmoid(np.dot(input_matrix, self.input_to_hidden_synapse))
         output_layer = sigmoid(np.dot(hidden_layer, self.hidden_2_output_synapse))
         return output_layer

@@ -23,6 +23,8 @@ def calculate_feature_vectors(sentence_list, title_vector, keywords_vector):
         feature_vector = np.append(feature_vector, values=sentence_cohesion)
         sim_to_keywords = similairty_to_keywords(sentence_vector, keywords_vector)
         feature_vector = np.append(feature_vector, values=sim_to_keywords)
+        position = i/len(sentence_vectors)
+        feature_vector = np.append(feature_vector, values=position)
         feature_vectors[i] = feature_vector
     return np.array(feature_vectors)
 

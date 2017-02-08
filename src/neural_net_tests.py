@@ -19,8 +19,8 @@ class NeuralNetworkTests(unittest.TestCase):
                          [0]]
         inputs = np.array(inputs)
         output_vector = np.array(output_vector)
-        net = NeuralNetwork(inputs, output_vector, input_nodes=2)
-        for i in range(1000000):
+        net = NeuralNetwork(inputs, output_vector)
+        for i in range(10000):
             net.train()
         output = net.feed(np.array([0, 1, 1]))
         self.assertAlmostEqual(output[0], 1)
