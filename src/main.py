@@ -49,8 +49,7 @@ def train(processed_corpus):
     output_vector = np.array(output_vector)
     neural_net = NeuralNetwork(input_matrix, output_vector)
     print('Starting NeuralNetwork training...', flush=True)
-    for i in range(20000): #pylint: disable = W0612
-        neural_net.train()
+    neural_net.train()
     return neural_net
 
 def test(neural_net, processed_corpus):
@@ -71,7 +70,7 @@ def test(neural_net, processed_corpus):
     generated_output = neural_net.feed(input_matrix)
     for i, output in enumerate(generated_output):
         difference = abs(output - expected_output[i])
-        if difference >= acceptable:
+        if difference <= acceptable:
             correct += 1
     success_rate = (correct / len(expected_output)) * 100
     print('Success rate = ', success_rate, '%')
