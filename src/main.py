@@ -32,7 +32,6 @@ def initialise():
     corpus_size = len(processed_corpus)
     split_size = int(corpus_size/2)
     neural_net = train(processed_corpus[:split_size])
-    print('Training complete starting test phase', flush=True)
     test(neural_net, processed_corpus[split_size:])
 
 def train(processed_corpus):
@@ -50,8 +49,7 @@ def train(processed_corpus):
     output_vector = np.array(output_vector)
     neural_net = NeuralNetwork(input_matrix, output_vector)
     print('Starting NeuralNetwork training...', flush=True)
-    for i in range(100000): #pylint: disable = W0612
-        neural_net.train()
+    neural_net.train()
     return neural_net
 
 def test(neural_net, processed_corpus):
@@ -71,8 +69,7 @@ def test(neural_net, processed_corpus):
     correct = 0
     generated_output = neural_net.feed(input_matrix)
     for i, output in enumerate(generated_output):
-        expected = expected_output[i]
-        difference = abs(output - expected)
+        difference = abs(output - expected_output[i])
         if difference <= acceptable:
             correct += 1
     success_rate = (correct / len(expected_output)) * 100
