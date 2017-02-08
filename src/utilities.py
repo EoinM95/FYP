@@ -4,6 +4,11 @@ import numpy as np
 
 DO_NOT_INCLUDE = -1
 
+def score_threshold(val):
+    if val >= 0.6:
+        return 1
+    return 0
+
 def show_progress(percent_progress):
     """Show a progress bar in the terminal"""
     sys.stdout.write('\r')
