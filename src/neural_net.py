@@ -33,7 +33,7 @@ class NeuralNetwork:
                 if mean_error == previous_error:
                     print('Error converged, halting training')
                     break
-                previous_error = mean_error    
+                previous_error = mean_error
             layer_2_delta = layer_2_error_matrix * sigmoid(output_layer, derivative=True)
             layer_1_error_matrix = layer_2_delta.dot(self.hidden_2_output_synapse.T)
             layer_1_delta = layer_1_error_matrix * sigmoid(hidden_layer, derivative=True)
