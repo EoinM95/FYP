@@ -53,14 +53,14 @@ class TensorFlowGraph():
                                                                      1], seed=SEED))
         self.input_placeholder = tf.placeholder(tf.float32, [None, input_nodes])
         self.output_placeholder = tf.placeholder(tf.float32, [None, 1])
-        self.hidden_biases = tf.Variable(tf.random_normal([hidden_nodes],
-                                                          seed=SEED))
-        self.output_bias = tf.Variable(tf.random_normal([1], seed=SEED))
-        self.hidden_layer = tf.add(tf.matmul(self.input_placeholder,
-                                             self.input_2_hidden_synapse), self.hidden_biases)
-        self.hidden_layer = tf.nn.sigmoid(self.hidden_layer)
-        self.output_layer = tf.matmul(self.hidden_layer,
-                                      self.hidden_2_output_synapse) + self.output_bias
+        hidden_biases = tf.Variable(tf.random_normal([hidden_nodes],
+                                                     seed=SEED))
+        output_bias = tf.Variable(tf.random_normal([1], seed=SEED))
+        hidden_layer = tf.add(tf.matmul(self.input_placeholder,
+                                        self.input_2_hidden_synapse), hidden_biases)
+        hidden_layer = tf.nn.sigmoid(hidden_layer)
+        self.output_layer = tf.matmul(hidden_layer,
+                                      self.hidden_2_output_synapse) + output_bias
         cost_function, optimizer = self.build_cost_and_optimizer(self.output_layer)
         self.cost_function = cost_function
         self.optimizer = optimizer
