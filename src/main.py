@@ -32,7 +32,7 @@ def initialise():
     corpus_size = len(processed_corpus)
     split_size = int(corpus_size/2)
     neural_net = train(processed_corpus[:split_size])
-    test(neural_net, processed_corpus[split_size:])
+    #test(neural_net, processed_corpus[split_size:])
 
 def train(processed_corpus):
     """Create and train neural network"""
@@ -45,8 +45,8 @@ def train(processed_corpus):
         scores_vector = corpus_entry['scores_list']
         for score in scores_vector:
             output_vector.append(score)
-    input_matrix = np.array(input_matrix)
-    output_vector = np.array(output_vector)
+    input_matrix = np.array(input_matrix, dtype='float32')
+    output_vector = np.array(output_vector, dtype='float32')
     neural_net = NeuralNetwork(input_matrix, output_vector)
     print('Starting NeuralNetwork training...', flush=True)
     neural_net.train()

@@ -22,4 +22,5 @@ class NeuralNetworkTests(unittest.TestCase):
         net = NeuralNetwork(inputs, output_vector)
         net.train()
         #output = net.feed(np.array([0, 1, 1]))
-        self.assertAlmostEqual(1, 1)
+        self.assertEqual(1, 1)
+        
