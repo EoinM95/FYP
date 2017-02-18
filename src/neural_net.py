@@ -4,7 +4,7 @@ import tensorflow as tf #pylint: disable = E0401
 
 LEARNING_RATE = 0.2
 SEED = 1
-MAX_TRAINING_ROUNDS = 50000
+MAX_TRAINING_ROUNDS = 100000
 BATCH_SIZE = 200
 
 class NeuralNetwork:
@@ -13,7 +13,7 @@ class NeuralNetwork:
         self.input_matrix = input_matrix
         self.output_vector = output_vector
         self.input_nodes = input_matrix.shape[1]
-        self.hidden_nodes = int((self.input_nodes + 1) / 2)
+        self.hidden_nodes = int((self.input_nodes + 1))
         self.input_2_hidden_synapse = tf.Variable(tf.random_normal([self.input_nodes,
                                                                     self.hidden_nodes], seed=SEED))
         self.hidden_2_output_synapse = tf.Variable(tf.random_normal([self.hidden_nodes,
@@ -48,8 +48,10 @@ class NeuralNetwork:
         print('Training complete')
 
     def build_cost_and_optimizer(self, output_layer):
-        cost_function = 0.5 * tf.reduce_sum((output_layer - self.output_placeholder)
-                                           * (output_layer - self.output_placeholder))
+        """Define and build tf variables representing cost/error function and
+        training/optimizer function"""
+        cost_function = 0.5 * tf.reduce_mean((output_layer - self.output_placeholder)
+                                             * (output_layer - self.output_placeholder))
         #cost_function = tf.reduce_mean(
             #tf.nn.softmax_cross_entropy_with_logits(labels=self.output_placeholder,
             #                                        logits=output_layer))
