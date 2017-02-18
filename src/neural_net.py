@@ -2,9 +2,9 @@
 #import numpy as np
 import tensorflow as tf #pylint: disable = E0401
 
-LEARNING_RATE = 0.2
+LEARNING_RATE = 0.1
 SEED = 1
-MAX_TRAINING_ROUNDS = 10000
+MAX_TRAINING_ROUNDS = 20000
 BATCH_SIZE = 200
 
 class NeuralNetwork:
@@ -70,8 +70,8 @@ class TensorFlowGraph():
     def build_cost_and_optimizer(self, output_layer):
         """Define and build tf variables representing cost/error function and
         training/optimizer function"""
-        cost_function = 0.5 * tf.reduce_mean((output_layer - self.output_placeholder)
-                                             * (output_layer - self.output_placeholder))
+        cost_function = tf.reduce_mean((output_layer - self.output_placeholder)
+                                       * (output_layer - self.output_placeholder))
         optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE).minimize(cost_function)
         return cost_function, optimizer
 
