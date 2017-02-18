@@ -21,6 +21,15 @@ class NeuralNetworkTests(unittest.TestCase):
         output_vector = np.array(output_vector)
         net = NeuralNetwork(inputs, output_vector)
         net.train()
-        #output = net.feed(np.array([0, 1, 1]))
-        self.assertEqual(1, 1)
-        
+        output = net.feed(np.array([[0, 1]], dtype='float32'))[0][0]
+        output = round(output, 3)
+        self.assertAlmostEqual(output, 1)
+        output = net.feed(np.array([[1, 0]], dtype='float32'))[0][0]
+        output = round(output, 3)
+        self.assertAlmostEqual(output, 1)
+        output = net.feed(np.array([[0, 0]], dtype='float32'))[0][0]
+        output = round(output, 3)
+        self.assertAlmostEqual(output, 0)
+        output = net.feed(np.array([[1, 1]], dtype='float32'))[0][0]
+        output = round(output, 3)
+        self.assertAlmostEqual(output, 0)

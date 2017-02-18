@@ -32,7 +32,7 @@ def initialise():
     corpus_size = len(processed_corpus)
     split_size = int(corpus_size/2)
     neural_net = train(processed_corpus[:split_size])
-    #test(neural_net, processed_corpus[split_size:])
+    test(neural_net, processed_corpus[split_size:])
 
 def train(processed_corpus):
     """Create and train neural network"""
