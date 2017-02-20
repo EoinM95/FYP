@@ -14,7 +14,7 @@ class NeuralNetwork:
         self.input_matrix = input_matrix
         self.output_vector = output_vector
         self.input_nodes = input_matrix.shape[1]
-        self.hidden_nodes = int((self.input_nodes + 1))
+        self.hidden_nodes = int((self.input_nodes + 1)/2)
         self.tf_graph = TensorFlowGraph(self.input_nodes, self.hidden_nodes)
 
     def train(self):
@@ -53,20 +53,20 @@ class TensorFlowGraph():
     """Wrapper class for TensorFlow libraries to build the computation graph
     and maintain a reference to the session and variables used for training """
     def __init__(self, input_nodes, hidden_nodes):
-        self.input_2_hidden_synapse = tf.Variable(tf.random_normal([input_nodes,
-                                                                    hidden_nodes], seed=SEED))
-        self.hidden_2_output_synapse = tf.Variable(tf.random_normal([hidden_nodes,
-                                                                     1], seed=SEED))
+        self.synapses = build_synapses(input_nodes, hidden_nodes)
         self.input_placeholder = tf.placeholder(tf.float32, [None, input_nodes])
         self.output_placeholder = tf.placeholder(tf.float32, [None, 1])
         hidden_biases = tf.Variable(tf.random_normal([hidden_nodes],
                                                      seed=SEED))
         output_bias = tf.Variable(tf.random_normal([1], seed=SEED))
-        hidden_layer = tf.add(tf.matmul(self.input_placeholder,
-                                        self.input_2_hidden_synapse), hidden_biases)
-        hidden_layer = tf.nn.sigmoid(hidden_layer)
-        output_layer = tf.matmul(hidden_layer,
-                                 self.hidden_2_output_synapse) + output_bias
+        first_hidden_layer = tf.add(tf.matmul(self.input_placeholder,
+                                              self.synapses['input_to_hidden']), hidden_biases)
+        first_hidden_layer = tf.nn.sigmoid(first_hidden_layer)
+        second_hidden_layer = tf.add(tf.matmul(first_hidden_layer,
+                                               self.synapses['hidden_to_hidden']), hidden_biases)
+        second_hidden_layer = tf.nn.sigmoid(second_hidden_layer)
+        output_layer = tf.matmul(second_hidden_layer,
+                                 self.synapses['hidden_to_output']) + output_bias
         self.output_layer = tf.nn.sigmoid(output_layer)
         cost_function, optimizer = self.build_cost_and_optimizer(self.output_layer)
         self.cost_function = cost_function
@@ -92,3 +92,13 @@ class TensorFlowGraph():
         f_dict = {self.input_placeholder: inputs}
         output = self.sess.run(self.output_layer, feed_dict=f_dict)
         return output
+
+def build_synapses(input_nodes, hidden_nodes):
+    """Create variables representing synapses in the neural net"""
+    input_to_hidden_1 = tf.Variable(tf.random_normal([input_nodes, hidden_nodes], seed=SEED))
+    hidden_1_to_hidden_2 = tf.Variable(tf.random_normal([hidden_nodes, hidden_nodes],
+                                                        seed=SEED))
+    hidden_2_output = tf.Variable(tf.random_normal([hidden_nodes, 1], seed=SEED))
+    return {'input_to_hidden': input_to_hidden_1,
+            'hidden_to_hidden': hidden_1_to_hidden_2,
+            'hidden_to_output': hidden_2_output}
