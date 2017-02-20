@@ -1,10 +1,11 @@
-"""Functions and class for simulating a trainable ANN"""
-#import numpy as np
+"""Functions and classes for simulating a trainable ANN"""
+import random
+import numpy as np
 import tensorflow as tf #pylint: disable = E0401
 
 LEARNING_RATE = 0.1
 SEED = 1
-MAX_TRAINING_ROUNDS = 20000
+EPOCHS = 100
 BATCH_SIZE = 200
 
 class NeuralNetwork:
@@ -19,27 +20,32 @@ class NeuralNetwork:
     def train(self):
         """Train neural net synapses by feeding forward then adjusting by back propagation"""
         print('Starting training session')
-        for epoch in range(MAX_TRAINING_ROUNDS):
+        for epoch in range(EPOCHS):
             mean_error = 0
-            total_batch = 1#int(self.input_matrix.shape[0]/BATCH_SIZE)
-            for i in range(total_batch):
-                batch_x, batch_y = self.batch_creator(i, BATCH_SIZE)
+            total_batch = int(self.input_matrix.shape[0]/BATCH_SIZE)
+            if total_batch == 0:
+                total_batch = 1
+            for _ in range(total_batch):
+                batch_x, batch_y = self.batch_creator(BATCH_SIZE)
                 cost = self.tf_graph.run_with_cost(batch_x, batch_y)
                 mean_error += cost / total_batch
-            if epoch % 1000 == 0:
-                print("Epoch:", (epoch), "cost =", mean_error, flush=True)
+            print("Epoch:", (epoch), "cost =", mean_error, flush=True)
         print('Training complete')
 
     def feed(self, input_matrix):
         """Calculate outputs for given input_matrix"""
         return self.tf_graph.run_for_output(input_matrix)
 
-    def batch_creator(self, batch_number, batch_size):
+    def batch_creator(self, batch_size):
         """Create batch with random samples and return appropriate format"""
-        start = batch_number * batch_size
-        #end = (batch_number + 1) * batch_size
-        batch_x = self.input_matrix[start:]#end
-        batch_y = self.output_vector[start:]#end
+        sample = random.sample(range(self.input_matrix.shape[0]), batch_size)
+        batch_x = []
+        batch_y = []
+        for index in sample:
+            batch_x.append(self.input_matrix[index])
+            batch_y.append(self.output_vector[index])
+        batch_x = np.array(batch_x, dtype='float32')
+        batch_y = np.array(batch_y, dtype='float32')
         return batch_x, batch_y
 
 
@@ -59,8 +65,9 @@ class TensorFlowGraph():
         hidden_layer = tf.add(tf.matmul(self.input_placeholder,
                                         self.input_2_hidden_synapse), hidden_biases)
         hidden_layer = tf.nn.sigmoid(hidden_layer)
-        self.output_layer = tf.matmul(hidden_layer,
-                                      self.hidden_2_output_synapse) + output_bias
+        output_layer = tf.matmul(hidden_layer,
+                                 self.hidden_2_output_synapse) + output_bias
+        self.output_layer = tf.nn.sigmoid(output_layer)
         cost_function, optimizer = self.build_cost_and_optimizer(self.output_layer)
         self.cost_function = cost_function
         self.optimizer = optimizer
@@ -70,8 +77,7 @@ class TensorFlowGraph():
     def build_cost_and_optimizer(self, output_layer):
         """Define and build tf variables representing cost/error function and
         training/optimizer function"""
-        cost_function = tf.reduce_mean((output_layer - self.output_placeholder)
-                                       * (output_layer - self.output_placeholder))
+        cost_function = tf.reduce_mean(tf.abs(self.output_placeholder - output_layer))
         optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE).minimize(cost_function)
         return cost_function, optimizer
 
