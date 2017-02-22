@@ -38,7 +38,10 @@ class NeuralNetwork:
 
     def batch_creator(self, batch_size):
         """Create batch with random samples and return appropriate format"""
-        sample = random.sample(range(self.input_matrix.shape[0]), batch_size)
+        dataset_size = self.input_matrix.shape[0]
+        if batch_size > dataset_size:
+            return self.input_matrix, self.output_vector
+        sample = random.sample(range(dataset_size), batch_size)
         batch_x = []
         batch_y = []
         for index in sample:
@@ -60,10 +63,12 @@ class TensorFlowGraph():
         second_hidden_biases = tf.Variable(tf.random_normal([int(hidden_nodes/2)]))
         output_bias = tf.Variable(tf.random_normal([1], seed=SEED))
         first_hidden_layer = tf.add(tf.matmul(self.input_placeholder,
-                                              self.synapses['input_to_hidden']), first_hidden_biases)
+                                              self.synapses['input_to_hidden']),
+                                    first_hidden_biases)
         first_hidden_layer = tf.nn.sigmoid(first_hidden_layer)
         second_hidden_layer = tf.add(tf.matmul(first_hidden_layer,
-                                               self.synapses['hidden_to_hidden']), second_hidden_biases)
+                                               self.synapses['hidden_to_hidden']),
+                                     second_hidden_biases)
         second_hidden_layer = tf.nn.sigmoid(second_hidden_layer)
         output_layer = tf.matmul(second_hidden_layer,
                                  self.synapses['hidden_to_output']) + output_bias
