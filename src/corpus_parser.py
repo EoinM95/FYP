@@ -1,7 +1,7 @@
 """Read in original texts and reference summaries from corpus"""
 import xml.etree.ElementTree as ET
 import re
-from utilities import DO_NOT_INCLUDE
+from utilities import DO_NOT_INCLUDE, score_threshold
 
 PUNCTUATION_PATTERN = r'[,\'\";&-:\$%`/\\{}\*]'
 HEADER_A_START = '<excludedsys'
@@ -95,8 +95,8 @@ def parse_scored_text(filename, tag_type='categ'):
     if max_best_score == 0:
         return DO_NOT_INCLUDE
     for sentence in sentences:
-        sentence['best_score'] = sentence['best_score'] / max_best_score
-        sentence['fixed_score'] = sentence['fixed_score'] / max_fixed_score
+        sentence['best_score'] = score_threshold(sentence['best_score'] / max_best_score)
+        sentence['fixed_score'] = score_threshold(sentence['fixed_score'] / max_fixed_score)
     return sentences
 
 def clean_input(text, section='body'):

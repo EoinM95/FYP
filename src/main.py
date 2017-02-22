@@ -17,6 +17,7 @@ SCORED_TEST_DIRECTORY = '..\\composite_summaries\\tipster-composite-summaries\\'
 ST_DIRECT_PATTERN = r'\\composite_summaries\\tipster-composite-summaries\\'
 ORIGINALS_DIRECT_PATTERN = r'\\formal\\test\\formal-test\\'
 FILE_NAME_PATTERN = r'(?P<file_name>WSJ[0-9]+-[0-9]+)(?P<extension>\.sents\.scored)'
+ACCEPTABLE = 0.1
 
 
 
@@ -45,8 +46,8 @@ def train(processed_corpus):
         scores_vector = corpus_entry['scores_list']
         for score in scores_vector:
             output_vector.append(score)
-    input_matrix = np.array(input_matrix)
-    output_vector = np.array(output_vector)
+    input_matrix = np.array(input_matrix, dtype='float32')
+    output_vector = np.array(output_vector, dtype='float32')
     neural_net = NeuralNetwork(input_matrix, output_vector)
     print('Starting NeuralNetwork training...', flush=True)
     neural_net.train()
@@ -56,7 +57,6 @@ def test(neural_net, processed_corpus):
     """Test neural network"""
     input_matrix = []
     expected_output = []
-    acceptable = 0.1
     for corpus_entry in processed_corpus:
         feature_matrix = corpus_entry['feature_vectors']
         for feature_vector in feature_matrix:
@@ -70,7 +70,7 @@ def test(neural_net, processed_corpus):
     generated_output = neural_net.feed(input_matrix)
     for i, output in enumerate(generated_output):
         difference = abs(output - expected_output[i])
-        if difference <= acceptable:
+        if difference <= ACCEPTABLE:
             correct += 1
     success_rate = (correct / len(expected_output)) * 100
     print('Success rate = ', success_rate, '%')
