@@ -5,7 +5,7 @@ import numpy as np
 from vector_reader import read_vectors_from_file
 from corpus_parser import parse_original_text, parse_scored_text
 from sentence_splitter import split, tokenize
-from utilities import remove_stop_words, sum_of_vectors, DO_NOT_INCLUDE
+from utilities import remove_stop_words, sum_of_vectors, DO_NOT_INCLUDE, stem
 from features import calculate_feature_vectors
 from neural_net import NeuralNetwork
 
@@ -176,7 +176,11 @@ def sentence_vector(sentence, vector_dictionary):
     word_vec_list = []
     for word in sentence:
         word = word.strip()
-        if word in vector_dictionary:
+        stemmed = stem(word)
+        if stemmed in vector_dictionary:
+            word_vec = vector_dictionary[stemmed]
+            word_vec_list.append(word_vec)
+        elif word in vector_dictionary:
             word_vec = vector_dictionary[word]
             word_vec_list.append(word_vec)
         elif word not in MISSING_WORDS:
