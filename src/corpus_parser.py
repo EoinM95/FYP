@@ -47,15 +47,17 @@ def read_parsed(filename):
                 xml_string += line
                 if DOC_END in line:
                     doc_finished = True
-    print(xml_string)
     root = ET.fromstring(xml_string)
     sentences = []
-    title = root.find('HEADLINE').text
+    title = root.find('HEADLINE').find('s').text
     lead = root.find('LEADPARA')
+    sentences += find_sentences(lead)
     main_body = root.find('TEXT')
+    sentences += find_sentences(main_body)
     return {'title':title, 'sentences': sentences}
 
 def find_sentences(tag):
+    """Find all the sentences inside an XML tag"""
     sentences = []
     for sentence_tag in tag.iter('s'):
         sentence = sentence_tag.text
@@ -66,6 +68,14 @@ def find_sentences(tag):
                           'position': position,
                           'in_summary': in_summary})
     return sentences
+
+def find_title(root):
+    """Find the document title"""
+    title = ''
+    title_node = root.find('HEADLINE')
+    if title_node is None:
+        title_node = root.find('HEAD')
+    return title
 
 def clean_input(text, section='body'):
     """Remove unnecessary chars from input"""
@@ -83,7 +93,8 @@ def clean_input(text, section='body'):
     return_text = ABBREVIATION_REGEX.sub(r'\2\4\6', return_text)
     return_text = MULTIPLE_SPACES_REGEX.sub(' ', return_text)
     return return_text
-test_text = '..\\duc01_tagged_meo_data\\d01a\\SJMN91-06184003.S'
+test_text = '..\\duc01_tagged_meo_data\\d36f\\AP890322-0078.S'
+#'..\\duc01_tagged_meo_data\\d01a\\SJMN91-06184003.S'
 parsed = read_parsed(test_text)
 print('title = ', parsed['title'])
 parsed_sentences = parsed['sentences']
