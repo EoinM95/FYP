@@ -49,7 +49,7 @@ def read_parsed(filename):
                     doc_finished = True
     root = ET.fromstring(xml_string)
     sentences = []
-    title = root.find('HEADLINE').find('s').text
+    title = find_title(root)
     lead = root.find('LEADPARA')
     sentences += find_sentences(lead)
     main_body = root.find('TEXT')
@@ -59,22 +59,26 @@ def read_parsed(filename):
 def find_sentences(tag):
     """Find all the sentences inside an XML tag"""
     sentences = []
-    for sentence_tag in tag.iter('s'):
-        sentence = sentence_tag.text
-        position = sentence_tag.get('num')
-        in_summary = sentence_tag.get('stype')
-        in_summary = bool(in_summary == '65537')
-        sentences.append({'sentence': clean_input(sentence),
-                          'position': position,
-                          'in_summary': in_summary})
+    if tag is not None:
+        all_sentences = tag.iter('s')
+        if all_sentences is not None:
+            for sentence_tag in all_sentences:
+                sentence = sentence_tag.text
+                in_summary = sentence_tag.get('stype')
+                in_summary = bool(in_summary == '65537')
+                sentences.append({'sentence': clean_input(sentence),
+                                  'in_summary': in_summary})
     return sentences
 
 def find_title(root):
     """Find the document title"""
     title = ''
-    title_node = root.find('HEADLINE')
-    if title_node is None:
-        title_node = root.find('HEAD')
+    title_nodes = root.findall('HEADLINE')
+    if not title_nodes:
+        title_nodes = root.findall('HEAD')
+    for node in title_nodes:
+        for sentence_tag in node.iter('s'):
+            title += sentence_tag.text
     return title
 
 def clean_input(text, section='body'):
@@ -97,7 +101,7 @@ test_text = '..\\duc01_tagged_meo_data\\d36f\\AP890322-0078.S'
 #'..\\duc01_tagged_meo_data\\d01a\\SJMN91-06184003.S'
 parsed = read_parsed(test_text)
 print('title = ', parsed['title'])
-parsed_sentences = parsed['sentences']
-for list_entry in parsed_sentences:
-    print('sentence text = ', list_entry['sentence'])
-    print('sentence in summary? ', list_entry['in_summary'])
+#parsed_sentences = parsed['sentences']
+#for list_entry in parsed_sentences:
+#    print('sentence text = ', list_entry['sentence'])
+#    print('sentence in summary? ', list_entry['in_summary'])
