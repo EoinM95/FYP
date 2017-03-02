@@ -5,12 +5,6 @@ from nltk.stem.wordnet import WordNetLemmatizer #pylint: disable = E0401
 
 DO_NOT_INCLUDE = -1
 
-def score_threshold(val):
-    """Return 1 if above threshold, else zero"""
-    if val >= 0.6:
-        return 1
-    return 0
-
 def stem(word):
     """Stem word using the PorterStemmer algorithm"""
     stemmer = WordNetLemmatizer()

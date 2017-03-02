@@ -1,11 +1,10 @@
 """Read in original texts and reference summaries from corpus"""
 import xml.etree.ElementTree as ET
 import re
-from utilities import DO_NOT_INCLUDE, score_threshold
+#from utilities import DO_NOT_INCLUDE
 
 PUNCTUATION_PATTERN = r'[,\'\";&-:\$%`/\\{}\*]'
-HEADER_A_START = '<excludedsys'
-HEADER_B_START = '<sysjudg_'
+DOC_END = '</DOC>'
 PUNCTUATION_REGEX = re.compile(PUNCTUATION_PATTERN)
 BRACKETED_KEYWORDS_PATTERN = r'\([A-Z]*\)'
 BRACKETED_KEYWORDS_REGEX = re.compile(BRACKETED_KEYWORDS_PATTERN)
@@ -28,76 +27,52 @@ XML_AMP_REGEX = re.compile(XML_AMP_PATTERN)
 SQ_BRACKET_PATTERN = r'[\[\]]'
 SQ_BRACKET_REGEX = re.compile(SQ_BRACKET_PATTERN)
 
-def parse_original_text(filename, style='wsj'):
-    """Read in original text"""
-    xml_string = ''
-    with open(filename) as stream:
-        for line in stream:
-            line = SQ_BRACKET_REGEX.sub('\"', line)
-            line = XML_AMP_REGEX.sub(r'&amp;', line)
-            xml_string += line
-    root = ET.fromstring(xml_string)
-    text = root.find('TEXT').text
-    title = ''
-    has_keywords = True
-    keywords = ''
-    if style == 'wsj':
-        title = root.find('HL').text
-        in_node = root.find('IN')
-        co_node = root.find('CO')
-        has_keywords = not(in_node is None and co_node is None)
-        if in_node is not None:
-            keywords = in_node.text
-        if co_node is not None:
-            keywords = keywords + ' ' + co_node.text
-
-    return {'text': clean_input(text, 'body'),
-            'title': clean_input(title, 'title'),
-            'has_keywords': has_keywords,
-            'keywords': clean_input(keywords, 'keywords')}
-
-def parse_scored_text(filename, tag_type='categ'):
+def read_parsed(filename):
     """Parse a scored summary of a text from a file"""
-    xml_string = '<DOC>'
+    xml_string = ''
     header_lines = []
+    term_lines = []
+    line_count = 0
+    header_line_num = 3
+    doc_finished = False
     with open(filename) as stream:
         for line in stream:
-            if line.startswith(HEADER_A_START) or line.startswith(HEADER_B_START):
+            if line_count < header_line_num:
                 header_lines.append(line)
+                line_count += 1
+            elif doc_finished:
+                term_lines.append(line)
             else:
-                line = SQ_BRACKET_REGEX.sub('\"', line)
                 line = XML_AMP_REGEX.sub(r'&amp;', line)
                 xml_string += line
-    xml_string = xml_string + '</DOC>'
+                if DOC_END in line:
+                    doc_finished = True
+    print(xml_string)
     root = ET.fromstring(xml_string)
     sentences = []
-    max_best_score = 0
-    max_fixed_score = 0
-    for sentence_tag in root.findall('S'):
+    title = root.find('HEADLINE').text
+    lead = root.find('LEADPARA')
+    main_body = root.find('TEXT')
+    for sentence_tag in main_body.iter('s'):
         sentence = sentence_tag.text
-        best_score = sentence_tag.get('sys_'+tag_type+'_best')
-        if best_score is None:
-            best_score = 0
-        else:
-            best_score = len(best_score.split(','))
-            if best_score > max_best_score:
-                max_best_score = best_score
-        fixed_score = sentence_tag.get('sys_'+tag_type+'_fixed')
-        if fixed_score is None:
-            fixed_score = 0
-        else:
-            fixed_score = len(fixed_score.split(','))
-            if fixed_score > max_fixed_score:
-                max_fixed_score = fixed_score
+        position = sentence_tag.get('num')
+        in_summary = sentence_tag.get('stype')
+        in_summary = bool(in_summary == '65537')
         sentences.append({'sentence': clean_input(sentence),
-                          'best_score': best_score, 'fixed_score': fixed_score})
+                          'position': position,
+                          'in_summary': in_summary})
+    return {'title':title, 'sentences': sentences}
 
-    if max_best_score == 0:
-        return DO_NOT_INCLUDE
-    for sentence in sentences:
-        sentence['best_score'] = score_threshold(sentence['best_score'] / max_best_score)
-        sentence['fixed_score'] = score_threshold(sentence['fixed_score'] / max_fixed_score)
-    return sentences
+def find_sentences(tag):
+    for sentence_tag in tag.iter('s'):
+        sentence = sentence_tag.text
+        position = sentence_tag.get('num')
+        in_summary = sentence_tag.get('stype')
+        in_summary = bool(in_summary == '65537')
+        sentences.append({'sentence': clean_input(sentence),
+                          'position': position,
+                          'in_summary': in_summary})
+
 
 def clean_input(text, section='body'):
     """Remove unnecessary chars from input"""
@@ -115,3 +90,10 @@ def clean_input(text, section='body'):
     return_text = ABBREVIATION_REGEX.sub(r'\2\4\6', return_text)
     return_text = MULTIPLE_SPACES_REGEX.sub(' ', return_text)
     return return_text
+test_text = '..\\duc01_tagged_meo_data\\d01a\\SJMN91-06184003.S'
+parsed = read_parsed(test_text)
+print('title = ', parsed['title'])
+parsed_sentences = parsed['sentences']
+for list_entry in parsed_sentences:
+    print('sentence text = ', list_entry['sentence'])
+    print('sentence in summary? ', list_entry['in_summary'])
