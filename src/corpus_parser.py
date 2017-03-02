@@ -53,17 +53,10 @@ def read_parsed(filename):
     title = root.find('HEADLINE').text
     lead = root.find('LEADPARA')
     main_body = root.find('TEXT')
-    for sentence_tag in main_body.iter('s'):
-        sentence = sentence_tag.text
-        position = sentence_tag.get('num')
-        in_summary = sentence_tag.get('stype')
-        in_summary = bool(in_summary == '65537')
-        sentences.append({'sentence': clean_input(sentence),
-                          'position': position,
-                          'in_summary': in_summary})
     return {'title':title, 'sentences': sentences}
 
 def find_sentences(tag):
+    sentences = []
     for sentence_tag in tag.iter('s'):
         sentence = sentence_tag.text
         position = sentence_tag.get('num')
@@ -72,7 +65,7 @@ def find_sentences(tag):
         sentences.append({'sentence': clean_input(sentence),
                           'position': position,
                           'in_summary': in_summary})
-
+    return sentences
 
 def clean_input(text, section='body'):
     """Remove unnecessary chars from input"""
