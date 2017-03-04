@@ -3,9 +3,9 @@ import random
 import numpy as np
 import tensorflow as tf #pylint: disable = E0401
 
-LEARNING_RATE = 0.1
+LEARNING_RATE = 0.2
 SEED = 1
-EPOCHS = 1000
+EPOCHS = 10000
 BATCH_SIZE = 200
 
 class NeuralNetwork:
