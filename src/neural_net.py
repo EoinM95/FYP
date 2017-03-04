@@ -1,21 +1,22 @@
 """Functions and classes for simulating a trainable ANN"""
 import random
+import os
 import numpy as np
 import tensorflow as tf #pylint: disable = E0401
 
 LEARNING_RATE = 0.2
 SEED = 1
-EPOCHS = 10000
+EPOCHS = 1000
 BATCH_SIZE = 200
 
 class NeuralNetwork:
     """Class representing a trainable NeuralNetwork with one hidden layer"""
-    def __init__(self, input_matrix, output_vector):
+    def __init__(self, input_matrix, output_vector, tfsession_file=None):
         self.input_matrix = input_matrix
         self.output_vector = output_vector
         self.input_nodes = input_matrix.shape[1]
         self.hidden_nodes = self.input_nodes + 1
-        self.tf_graph = TensorFlowGraph(self.input_nodes, self.hidden_nodes)
+        self.tf_graph = TensorFlowGraph(self.input_nodes, self.hidden_nodes, tfsession_file)
 
     def train(self):
         """Train neural net synapses by feeding forward then adjusting by back propagation"""
@@ -51,33 +52,40 @@ class NeuralNetwork:
         batch_y = np.array(batch_y, dtype='float32')
         return batch_x, batch_y
 
+    def save(self, filename):
+        """Save the neural net to file"""
+        self.tf_graph.save(filename)
 
 class TensorFlowGraph():
     """Wrapper class for TensorFlow libraries to build the computation graph
     and maintain a reference to the session and variables used for training """
-    def __init__(self, input_nodes, hidden_nodes):
-        self.synapses = build_synapses(input_nodes, hidden_nodes)
+    def __init__(self, input_nodes, hidden_nodes, tfsession_file=None):
+        synapses = build_synapses(input_nodes, hidden_nodes)
         self.input_placeholder = tf.placeholder(tf.float32, [None, input_nodes])
         self.output_placeholder = tf.placeholder(tf.float32, [None, 1])
         first_hidden_biases = tf.Variable(tf.random_normal([hidden_nodes]))
         second_hidden_biases = tf.Variable(tf.random_normal([int(hidden_nodes/2)]))
         output_bias = tf.Variable(tf.random_normal([1], seed=SEED))
         first_hidden_layer = tf.add(tf.matmul(self.input_placeholder,
-                                              self.synapses['input_to_hidden']),
+                                              synapses['input_to_hidden']),
                                     first_hidden_biases)
         first_hidden_layer = tf.nn.sigmoid(first_hidden_layer)
         second_hidden_layer = tf.add(tf.matmul(first_hidden_layer,
-                                               self.synapses['hidden_to_hidden']),
+                                               synapses['hidden_to_hidden']),
                                      second_hidden_biases)
         second_hidden_layer = tf.nn.sigmoid(second_hidden_layer)
         output_layer = tf.matmul(second_hidden_layer,
-                                 self.synapses['hidden_to_output']) + output_bias
+                                 synapses['hidden_to_output']) + output_bias
         self.output_layer = tf.nn.sigmoid(output_layer)
         cost_function, optimizer = self.build_cost_and_optimizer(self.output_layer)
         self.cost_function = cost_function
         self.optimizer = optimizer
         self.sess = tf.Session()
-        tf.global_variables_initializer().run(session=self.sess)
+        if tfsession_file is None:
+            tf.global_variables_initializer().run(session=self.sess)
+        else:
+            saver = tf.train.Saver()
+            saver.restore(self.sess, tfsession_file)
 
     def build_cost_and_optimizer(self, output_layer):
         """Define and build tf variables representing cost/error function and
@@ -97,6 +105,13 @@ class TensorFlowGraph():
         f_dict = {self.input_placeholder: inputs}
         output = self.sess.run(self.output_layer, feed_dict=f_dict)
         return output
+
+    def save(self, save_location):
+        """Save the weights and graph to a file"""
+        saver = tf.train.Saver()
+        new_file = open(save_location, 'w+')
+        new_file.close()
+        saver.save(self.sess, os.path.join(os.getcwd(), save_location))
 
 def build_synapses(input_nodes, hidden_nodes):
     """Create variables representing synapses in the neural net"""

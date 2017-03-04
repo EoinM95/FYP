@@ -96,6 +96,8 @@ def clean_input(text):
     return_text = PUNCTUATION_REGEX.sub(' ', return_text)
     return_text = MULTIPLE_SPACES_REGEX.sub(' ', return_text)
     return return_text
+
+
 if __name__ == '__main__':
     TEST_TEXT = '..\\duc01_tagged_meo_data\\d26e\\FBIS4-23474.S'
     #'..\\duc01_tagged_meo_data\\d36f\\AP890322-0078.S'
