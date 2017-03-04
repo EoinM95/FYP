@@ -1,9 +1,8 @@
 """Read a corpus, check there's a vector for everything"""
-import re
 import os
 import numpy as np
 from vector_reader import read_vectors_from_file
-from corpus_parser import parse_original_text, parse_scored_text
+from corpus_parser import read_parsed
 from sentence_splitter import split, tokenize
 from utilities import remove_stop_words, sum_of_vectors, DO_NOT_INCLUDE, stem
 from features import calculate_feature_vectors
@@ -13,10 +12,7 @@ VECTOR_DICTIONARY = {}
 MISSING_WORDS = []
 MISSING_WORDS_FILE = 'missing_words.txt'
 VECTOR_FILE = '..\\GoogleNews-vectors-negative300.bin' #'..\\vectors.txt'
-SCORED_TEST_DIRECTORY = '..\\composite_summaries\\tipster-composite-summaries\\'
-ST_DIRECT_PATTERN = r'\\composite_summaries\\tipster-composite-summaries\\'
-ORIGINALS_DIRECT_PATTERN = r'\\formal\\test\\formal-test\\'
-FILE_NAME_PATTERN = r'(?P<file_name>WSJ[0-9]+-[0-9]+)(?P<extension>\.sents\.scored)'
+CORPUS_DIRECTORY = '..\\duc01_tagged_meo_data\\'
 ACCEPTABLE = 0.1
 
 
@@ -78,71 +74,47 @@ def test(neural_net, processed_corpus):
 def find_files_and_process():
     """Find all files which are usable and parse them, return feature vectors and scores"""
     file_counter = 0
-    file_regex = re.compile(FILE_NAME_PATTERN)
-    directory_regex = re.compile(ST_DIRECT_PATTERN)
     features_and_scores = []
-    for subdir, dirs, files in os.walk(SCORED_TEST_DIRECTORY): #pylint: disable = W0612
+    for subdir, dirs, files in os.walk(CORPUS_DIRECTORY): #pylint: disable = W0612
         for file in files:
-            match = file_regex.match(file)
-            if match:
-                scored_filepath = subdir + os.sep + file
-                original_file = match.group('file_name')
-                original_directory = directory_regex.sub(ORIGINALS_DIRECT_PATTERN, subdir)
-                original_filepath = original_directory+os.sep+original_file
-                if os.path.isfile(original_filepath):
-                    file_counter += 1
-                    print('Started processing file no ', file_counter, flush=True)
-                    tag_type = 'categ'
-                    if 'adhoc' in scored_filepath:
-                        tag_type = 'adhoc'
-                    processed = parse_and_featurize_from_scored(scored_filepath,
-                                                                original_filepath, tag_type)
-                    if processed is not DO_NOT_INCLUDE:
-                        features_and_scores.append(processed)
-                    else:
-                        print('Excluding file ', file, 'reseting file counter', flush=True)
-                        file_counter = file_counter - 1
+            corpus_file = subdir + os.sep + file
+            if os.path.isfile(corpus_file):
+                file_counter += 1
+                print('Started processing file no ', file_counter, flush=True)
+                processed = parse_and_featurize_from_scored(corpus_file)
+                if processed is not DO_NOT_INCLUDE:
+                    features_and_scores.append(processed)
                 else:
-                    print('Couldn\'t find matching original for scored summary: ', scored_filepath)
+                    print('Excluding file ', file, 'reseting file counter', flush=True)
+                    file_counter = file_counter - 1
     print('Found and processed ', file_counter, ' usable texts and scored summaries', flush=True)
     return features_and_scores
 
-def parse_and_featurize_from_orig(filename):
-    """Parse file and create feature_vectors for each of its sentences"""
-    parsed_doc = parse_original_text(filename)
-    doc_body = parsed_doc['text']
-    sentence_list = create_sentence_list(doc_body)
-    title_vector = clean_and_vectorize(parsed_doc['title'])
-    has_keywords = parsed_doc['has_keywords']
-    if not has_keywords:
-        keywords_vector = []
-    else:
-        keywords_vector = clean_and_vectorize(parsed_doc['keywords'])
-    return calculate_feature_vectors(sentence_list, title_vector, keywords_vector)
+# def parse_and_featurize_from_orig(filename):
+#     """Parse file and create feature_vectors for each of its sentences"""
+#     parsed_doc = parse_original_text(filename)
+#     doc_body = parsed_doc['text']
+#     sentence_list = create_sentence_list(doc_body)
+#     title_vector = clean_and_vectorize(parsed_doc['title'])
+#     has_keywords = parsed_doc['has_keywords']
+#     if not has_keywords:
+#         keywords_vector = []
+#     else:
+#         keywords_vector = clean_and_vectorize(parsed_doc['keywords'])
+#     return calculate_feature_vectors(sentence_list, title_vector, keywords_vector)
 
-def parse_and_featurize_from_scored(scored_file, original_file, tag_type='categ'):
+def parse_and_featurize_from_scored(corpus_file):
     """Parse file and create feature_vectors for each of its sentences"""
-    original_parsed = parse_original_text(original_file)
-    title_vector = clean_and_vectorize(original_parsed['title'])
-    has_keywords = original_parsed['has_keywords']
-    if not has_keywords:
-        return DO_NOT_INCLUDE
-    else:
-        keywords_vector = clean_and_vectorize(original_parsed['keywords'])
-        if keywords_vector is DO_NOT_INCLUDE:
-            return DO_NOT_INCLUDE
-    scored_sentences = parse_scored_text(scored_file, tag_type)
-    if scored_sentences is DO_NOT_INCLUDE:
-        return DO_NOT_INCLUDE
+    parsed_doc = read_parsed(corpus_file)
+    title_vector = clean_and_vectorize(parsed_doc['title'])
     sentence_list = []
     scores_list = []
-    for sentence in scored_sentences:
+    for sentence in parsed_doc['sentences']:
         list_entry = tokenize_and_vectorize(sentence['sentence'])
         if list_entry != DO_NOT_INCLUDE:
             sentence_list.append(list_entry)
-            scores_list.append([sentence['best_score']])
-    feature_vectors = calculate_feature_vectors(sentence_list, title_vector,
-                                                keywords_vector)
+            scores_list.append([sentence['in_summary']])
+    feature_vectors = calculate_feature_vectors(sentence_list, title_vector)
     return {'feature_vectors': feature_vectors, 'scores_list': np.array(scores_list)}
 
 def tokenize_and_vectorize(sentence):

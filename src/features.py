@@ -5,7 +5,7 @@ from scipy.spatial.distance import cosine
 import numpy as np
 
 #feature_vec = [tf*isf, sim_to_title, centroid_cohesion, sentence_cohesion, sim_to_keywords]
-def calculate_feature_vectors(sentence_list, title_vector, keywords_vector):
+def calculate_feature_vectors(sentence_list, title_vector):
     """Calculate the normalised feature vector for every sentence"""
     feature_vectors = compute_tf_isfs_for_text(sentence_list)
     sentence_vectors = []
@@ -21,8 +21,6 @@ def calculate_feature_vectors(sentence_list, title_vector, keywords_vector):
         feature_vector = np.append(feature_vector, values=centroid_cohesion)
         sentence_cohesion = sentence_cohesion_values[i]
         feature_vector = np.append(feature_vector, values=sentence_cohesion)
-        sim_to_keywords = similairty_to_keywords(sentence_vector, keywords_vector)
-        feature_vector = np.append(feature_vector, values=sim_to_keywords)
         position = i/len(sentence_vectors)
         feature_vector = np.append(feature_vector, values=position)
         feature_vectors[i] = feature_vector

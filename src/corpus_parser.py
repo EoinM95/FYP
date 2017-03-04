@@ -1,13 +1,10 @@
 """Read in original texts and reference summaries from corpus"""
 import xml.etree.ElementTree as ET
 import re
-#from utilities import DO_NOT_INCLUDE
 
-PUNCTUATION_PATTERN = r'[,\'\";&-:\$%`/\\{}\*]'
 DOC_END = '</DOC>'
+PUNCTUATION_PATTERN = r'([,\'\";&\-:\$%`/\\{}\*`]|\.|\.\.\.)'
 PUNCTUATION_REGEX = re.compile(PUNCTUATION_PATTERN)
-BRACKETED_KEYWORDS_PATTERN = r'\([A-Z]*\)'
-BRACKETED_KEYWORDS_REGEX = re.compile(BRACKETED_KEYWORDS_PATTERN)
 BRACKETS_PATTERN = r'[\(\)]'
 BRACKETS_REGEX = re.compile(BRACKETS_PATTERN)
 #replace U.S.A. with USA etc
@@ -21,11 +18,10 @@ MULTIPLE_SPACES_PATTERN = r'( )+'
 MULTIPLE_SPACES_REGEX = re.compile(MULTIPLE_SPACES_PATTERN)
 WHITESPACE_PATTERN = r'\s'
 WHITESPACE_REGEX = re.compile(WHITESPACE_PATTERN)
-
 XML_AMP_PATTERN = r'&(?!amp;)'
 XML_AMP_REGEX = re.compile(XML_AMP_PATTERN)
-SQ_BRACKET_PATTERN = r'[\[\]]'
-SQ_BRACKET_REGEX = re.compile(SQ_BRACKET_PATTERN)
+XML_ATT_PATTERN = r'([A-Z])=([0-9]+)'
+XML_ATT_REGEX = re.compile(XML_ATT_PATTERN)
 
 def read_parsed(filename):
     """Parse a scored summary of a text from a file"""
@@ -44,6 +40,7 @@ def read_parsed(filename):
                 term_lines.append(line)
             else:
                 line = XML_AMP_REGEX.sub(r'&amp;', line)
+                line = XML_ATT_REGEX.sub(r'\1="\2"', line)
                 xml_string += line
                 if DOC_END in line:
                     doc_finished = True
@@ -60,14 +57,15 @@ def find_sentences(tag):
     """Find all the sentences inside an XML tag"""
     sentences = []
     if tag is not None:
-        all_sentences = tag.iter('s')
-        if all_sentences is not None:
-            for sentence_tag in all_sentences:
-                sentence = sentence_tag.text
-                in_summary = sentence_tag.get('stype')
-                in_summary = bool(in_summary == '65537')
-                sentences.append({'sentence': clean_input(sentence),
-                                  'in_summary': in_summary})
+        for sentence_tag in tag.iter('s'):
+            sentence = sentence_tag.text
+            in_summary = sentence_tag.get('stype')
+            if in_summary == '65537':
+                in_summary = 1
+            else:
+                in_summary = 0
+            sentences.append({'sentence': clean_input(sentence),
+                              'in_summary': in_summary})
     return sentences
 
 def find_title(root):
@@ -76,32 +74,35 @@ def find_title(root):
     title_nodes = root.findall('HEADLINE')
     if not title_nodes:
         title_nodes = root.findall('HEAD')
-    for node in title_nodes:
-        for sentence_tag in node.iter('s'):
-            title += sentence_tag.text
-    return title
+    if title_nodes:
+        for node in title_nodes:
+            for sentence_tag in node.iter('s'):
+                title += sentence_tag.text
+    else:
+        title_nodes = root.findall('H3')
+        if title_nodes:
+            for node in title_nodes:
+                for sentence_tag in node.iter('TI'):
+                    title += sentence_tag.text
+    return clean_input(title)
 
-def clean_input(text, section='body'):
+def clean_input(text):
     """Remove unnecessary chars from input"""
     return_text = text
-    if section == 'title':
-        text = TITLE_DIVIDER_REGEX.split(text)
-        return_text = text[0]
-    return_text = PUNCTUATION_REGEX.sub(' ', return_text)
-    if section == 'keywords':
-        return_text = BRACKETED_KEYWORDS_REGEX.sub('', return_text)
-    else:
-        return_text = BRACKETS_REGEX.sub(' ', return_text)
+    return_text = BRACKETS_REGEX.sub(' ', return_text)
     return_text = SENTENCE_END_REGEX.sub('.', return_text)
     return_text = WHITESPACE_REGEX.sub(' ', return_text)
     return_text = ABBREVIATION_REGEX.sub(r'\2\4\6', return_text)
+    return_text = PUNCTUATION_REGEX.sub(' ', return_text)
     return_text = MULTIPLE_SPACES_REGEX.sub(' ', return_text)
     return return_text
-test_text = '..\\duc01_tagged_meo_data\\d36f\\AP890322-0078.S'
-#'..\\duc01_tagged_meo_data\\d01a\\SJMN91-06184003.S'
-parsed = read_parsed(test_text)
-print('title = ', parsed['title'])
-#parsed_sentences = parsed['sentences']
-#for list_entry in parsed_sentences:
-#    print('sentence text = ', list_entry['sentence'])
-#    print('sentence in summary? ', list_entry['in_summary'])
+if __name__ == '__main__':
+    TEST_TEXT = '..\\duc01_tagged_meo_data\\d26e\\FBIS4-23474.S'
+    #'..\\duc01_tagged_meo_data\\d36f\\AP890322-0078.S'
+    #'..\\duc01_tagged_meo_data\\d01a\\SJMN91-06184003.S'
+    PARSED = read_parsed(TEST_TEXT)
+    print('title = ', PARSED['title'])
+    #PARSED_SENTENCES = PARSED['sentences']
+    #for list_entry in PARSED_SENTENCES:
+    #    print('sentence text = ', list_entry['sentence'])
+    #    print('sentence in summary? ', list_entry['in_summary'])
