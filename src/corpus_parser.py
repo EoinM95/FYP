@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import re
 
 DOC_END = '</DOC>'
-PUNCTUATION_PATTERN = r'([,\'\";&\-:\$%`/\\{}\*`]|\.|\.\.\.)'
+PUNCTUATION_PATTERN = r'([,\'\";&\-:\$%`/\\{}\*`_]|\.|\.\.\.)'
 PUNCTUATION_REGEX = re.compile(PUNCTUATION_PATTERN)
 BRACKETS_PATTERN = r'[\(\)]'
 BRACKETS_REGEX = re.compile(BRACKETS_PATTERN)

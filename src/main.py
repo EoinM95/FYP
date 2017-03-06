@@ -4,7 +4,7 @@ import numpy as np
 from vector_reader import read_vectors_from_file
 from corpus_parser import read_parsed
 from sentence_splitter import split, tokenize
-from utilities import remove_stop_words, sum_of_vectors, DO_NOT_INCLUDE, stem
+from utilities import remove_stop_words, sum_of_vectors, DO_NOT_INCLUDE, stem, tag
 from features import calculate_feature_vectors
 from neural_net import NeuralNetwork
 
@@ -121,11 +121,12 @@ def parse_and_featurize_from_scored(corpus_file):
 def tokenize_and_vectorize(sentence):
     """Return tokens and vector for sentence"""
     tokens = tokenize(sentence)
+    pos = tag(tokens)
     tokens = remove_stop_words(tokens)
     vector = sentence_vector(tokens, VECTOR_DICTIONARY)
     if vector is DO_NOT_INCLUDE:
         return vector
-    return {'sentence': sentence, 'tokens':tokens, 'sentence_vec': vector}
+    return {'sentence': sentence, 'tokens':tokens, 'sentence_vec': vector, 'pos': pos}
 
 def clean_and_vectorize(sentence):
     """Remove stop words and find vector"""
