@@ -4,10 +4,10 @@ import os
 import numpy as np
 import tensorflow as tf #pylint: disable = E0401
 
-LEARNING_RATE = 0.2
+LEARNING_RATE = 0.1
 SEED = 1
-EPOCHS = 1000
-BATCH_SIZE = 200
+EPOCHS = 100
+BATCH_SIZE = 1#00
 
 class NeuralNetwork:
     """Class representing a trainable NeuralNetwork with one hidden layer"""
@@ -27,7 +27,8 @@ class NeuralNetwork:
             if total_batch == 0:
                 total_batch = 1
             for _ in range(total_batch):
-                batch_x, batch_y = self.batch_creator(BATCH_SIZE)
+                batch_x, batch_y = self.input_matrix, self.output_vector
+                #self.batch_creator(BATCH_SIZE)
                 cost = self.tf_graph.run_with_cost(batch_x, batch_y)
                 mean_error += cost / total_batch
             print("Epoch:", (epoch), "cost =", mean_error, flush=True)
@@ -73,7 +74,6 @@ class TensorFlowGraph():
         second_hidden_layer = tf.add(tf.matmul(first_hidden_layer,
                                                synapses['hidden_to_hidden']),
                                      second_hidden_biases)
-        second_hidden_layer = tf.nn.sigmoid(second_hidden_layer)
         output_layer = tf.matmul(second_hidden_layer,
                                  synapses['hidden_to_output']) + output_bias
         self.output_layer = tf.nn.sigmoid(output_layer)
@@ -91,7 +91,7 @@ class TensorFlowGraph():
         """Define and build tf variables representing cost/error function and
         training/optimizer function"""
         cost_function = tf.reduce_mean(tf.abs(self.output_placeholder - output_layer))
-        optimizer = tf.train.AdamOptimizer(LEARNING_RATE).minimize(cost_function)
+        optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE).minimize(cost_function)
         return cost_function, optimizer
 
     def run_with_cost(self, inputs, outputs):

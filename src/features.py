@@ -5,7 +5,7 @@ from scipy.spatial.distance import cosine
 import numpy as np
 
 #feature_vec = [tf*isf, sim_to_title, centroid_cohesion, sentence_cohesion, sim_to_keywords]
-def calculate_feature_vectors(sentence_list, title_vector):
+def calculate_feature_vectors(sentence_list, title_vector):#pylint: disable = R0914
     """Calculate the normalised feature vector for every sentence"""
     feature_vectors = compute_tf_isfs_for_text(sentence_list)
     sentence_vectors = []
@@ -13,6 +13,9 @@ def calculate_feature_vectors(sentence_list, title_vector):
         sentence_vectors.append(sentence['sentence_vec'])
     centroid_cohesion_values = sentence_2_centroid_cohesion(sentence_vectors)
     sentence_cohesion_values = senetence_2_sentence_cohesion(sentence_vectors)
+    length_list = list(map(get_length, sentence_list))
+    length_list = normalise_list(length_list)
+    pns_list = list(map(contains_proper_nouns, sentence_list))
     for i, sentence_vector in enumerate(sentence_vectors):
         feature_vector = np.array(feature_vectors[i])
         sim_to_title = similairty_to_title(sentence_vector, title_vector)
@@ -23,8 +26,13 @@ def calculate_feature_vectors(sentence_list, title_vector):
         feature_vector = np.append(feature_vector, values=sentence_cohesion)
         position = i/len(sentence_vectors)
         feature_vector = np.append(feature_vector, values=position)
+        pns = pns_list[i]
+        feature_vector = np.append(feature_vector, values=pns)
+        length = length_list[i]
+        feature_vector = np.append(feature_vector, values=length)
         feature_vectors[i] = feature_vector
-    return np.array(feature_vectors)
+    feature_vectors = np.array(feature_vectors)
+    return feature_vectors
 
 def compute_tf_isfs_for_text(sentence_list):
     """Compute the mean term frequency*inverse sentence frequency for
@@ -95,3 +103,23 @@ def senetence_2_sentence_cohesion(sentence_vectors):
             cohesion_values[j] += sim
     cohesion_values = np.array(cohesion_values)
     return  cohesion_values/cohesion_values.max()
+
+def normalise_list(list_in):
+    """Normalise a list, return np.array"""
+    list_in = np.array(list_in)
+    if list_in.max() == 0:
+        return list_in
+    return list_in/list_in.max()
+
+def contains_proper_nouns(sentence):
+    """Return 1 if sentence contains at least one proper noun"""
+    parts_of_speech = sentence['pos']
+    pns = 0
+    for _, tag in parts_of_speech:
+        if tag.startswith('NNP'):
+            pns += 1
+    return pns
+
+def get_length(sentence):
+    """Find the length attribute of sentence"""
+    return sentence['length']

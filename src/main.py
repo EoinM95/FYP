@@ -45,9 +45,9 @@ def train(processed_corpus):
             output_vector.append(score)
     input_matrix = np.array(input_matrix, dtype='float32')
     output_vector = np.array(output_vector, dtype='float32')
-    neural_net = NeuralNetwork(input_matrix, output_vector, './trained_model.tf')
-    #print('Starting NeuralNetwork training...', flush=True)
-    #neural_net.train()
+    neural_net = NeuralNetwork(input_matrix, output_vector)
+    print('Starting NeuralNetwork training...', flush=True)
+    neural_net.train()
     return neural_net
 
 def test(neural_net, processed_corpus):#pylint: disable = R0914
