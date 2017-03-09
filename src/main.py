@@ -50,7 +50,7 @@ def train(processed_corpus):
     #neural_net.train()
     return neural_net
 
-def test(neural_net, processed_corpus):
+def test(neural_net, processed_corpus):#pylint: disable = R0914
     """Test neural network"""
     input_matrix = []
     expected_output = []
@@ -64,13 +64,29 @@ def test(neural_net, processed_corpus):
     input_matrix = np.array(input_matrix)
     expected_output = np.array(expected_output)
     correct = 0
+    true_positives = 0
+    false_positives = 0
+    false_negatives = 0
     generated_output = neural_net.feed(input_matrix)
     for i, output in enumerate(generated_output):
-        difference = abs(output - expected_output[i])
-        if difference <= ACCEPTABLE:
+        expected = expected_output[i][0]
+        output = round(output[0], 2)
+        if output == 1:
+            print('Actually working')
+        if expected == output:
             correct += 1
+        if expected == 1 and output == 1:
+            true_positives += 1
+        elif expected == 0 and output == 1:
+            false_positives += 1
+        elif expected == 1 and output == 0:
+            false_negatives += 1
     success_rate = (correct / len(expected_output)) * 100
+    #precision = (true_positives / (true_positives + false_positives)) * 100
+    #recall = (true_positives / (true_positives + false_negatives)) * 100
     print('Success rate = ', success_rate, '%')
+    #print('Precision = ', precision, '%')
+    #print('Recall = ', recall, '%')
 
 def find_files_and_process():
     """Find all files which are usable and parse them, return feature vectors and scores"""
@@ -122,11 +138,13 @@ def tokenize_and_vectorize(sentence):
     """Return tokens and vector for sentence"""
     tokens = tokenize(sentence)
     pos = tag(tokens)
+    length = len(tokens)
     tokens = remove_stop_words(tokens)
     vector = sentence_vector(tokens, VECTOR_DICTIONARY)
     if vector is DO_NOT_INCLUDE:
         return vector
-    return {'sentence': sentence, 'tokens':tokens, 'sentence_vec': vector, 'pos': pos}
+    return {'sentence': sentence, 'tokens':tokens, 'sentence_vec': vector,
+            'pos': pos, 'length': length}
 
 def clean_and_vectorize(sentence):
     """Remove stop words and find vector"""
