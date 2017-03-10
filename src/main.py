@@ -36,13 +36,22 @@ def train(processed_corpus):
     """Create and train neural network"""
     input_matrix = []
     output_vector = []
+    negative_inputs = []
     for corpus_entry in processed_corpus:
         feature_matrix = corpus_entry['feature_vectors']
-        for feature_vector in feature_matrix:
-            input_matrix.append(feature_vector)
         scores_vector = corpus_entry['scores_list']
-        for score in scores_vector:
-            output_vector.append(score)
+        for i, feature_vector in enumerate(feature_matrix):
+            score = scores_vector[i]
+            if score[0] == 1:
+                input_matrix.append(feature_vector)
+                output_vector.append(score)
+            else:
+                negative_inputs.append((feature_vector, score))
+    positive_size = len(input_matrix)
+    for i in range(int(positive_size/4)):
+        feature_vector, score = negative_inputs[i]
+        input_matrix.append(feature_vector)
+        output_vector.append(score)
     input_matrix = np.array(input_matrix, dtype='float32')
     output_vector = np.array(output_vector, dtype='float32')
     neural_net = NeuralNetwork(input_matrix, output_vector)
@@ -71,8 +80,6 @@ def test(neural_net, processed_corpus):#pylint: disable = R0914
     for i, output in enumerate(generated_output):
         expected = expected_output[i][0]
         output = round(output[0], 2)
-        if output == 1:
-            print('Actually working')
         if expected == output:
             correct += 1
         if expected == 1 and output == 1:
@@ -82,11 +89,11 @@ def test(neural_net, processed_corpus):#pylint: disable = R0914
         elif expected == 1 and output == 0:
             false_negatives += 1
     success_rate = (correct / len(expected_output)) * 100
-    #precision = (true_positives / (true_positives + false_positives)) * 100
-    #recall = (true_positives / (true_positives + false_negatives)) * 100
+    precision = (true_positives / (true_positives + false_positives)) * 100
+    recall = (true_positives / (true_positives + false_negatives)) * 100
     print('Success rate = ', success_rate, '%')
-    #print('Precision = ', precision, '%')
-    #print('Recall = ', recall, '%')
+    print('Precision = ', precision, '%')
+    print('Recall = ', recall, '%')
 
 def find_files_and_process():
     """Find all files which are usable and parse them, return feature vectors and scores"""

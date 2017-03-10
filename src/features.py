@@ -16,6 +16,7 @@ def calculate_feature_vectors(sentence_list, title_vector):#pylint: disable = R0
     length_list = list(map(get_length, sentence_list))
     length_list = normalise_list(length_list)
     pns_list = list(map(contains_proper_nouns, sentence_list))
+    pns_list = normalise_list(pns_list)
     for i, sentence_vector in enumerate(sentence_vectors):
         feature_vector = np.array(feature_vectors[i])
         sim_to_title = similairty_to_title(sentence_vector, title_vector)

@@ -4,10 +4,10 @@ import os
 import numpy as np
 import tensorflow as tf #pylint: disable = E0401
 
-LEARNING_RATE = 0.1
+LEARNING_RATE = 1e-2
 SEED = 1
-EPOCHS = 100
-BATCH_SIZE = 1#00
+EPOCHS = 10000
+BATCH_SIZE = 100
 
 class NeuralNetwork:
     """Class representing a trainable NeuralNetwork with one hidden layer"""
@@ -70,10 +70,11 @@ class TensorFlowGraph():
         first_hidden_layer = tf.add(tf.matmul(self.input_placeholder,
                                               synapses['input_to_hidden']),
                                     first_hidden_biases)
-        first_hidden_layer = tf.nn.sigmoid(first_hidden_layer)
+        first_hidden_layer = tf.nn.elu(first_hidden_layer)
         second_hidden_layer = tf.add(tf.matmul(first_hidden_layer,
                                                synapses['hidden_to_hidden']),
                                      second_hidden_biases)
+        second_hidden_layer = tf.nn.elu(second_hidden_layer)
         output_layer = tf.matmul(second_hidden_layer,
                                  synapses['hidden_to_output']) + output_bias
         self.output_layer = tf.nn.sigmoid(output_layer)
