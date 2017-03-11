@@ -4,7 +4,7 @@ import os
 import numpy as np
 import tensorflow as tf #pylint: disable = E0401
 
-LEARNING_RATE = 1e-2
+LEARNING_RATE = 0.15
 SEED = 1
 EPOCHS = 10000
 BATCH_SIZE = 100
@@ -31,7 +31,8 @@ class NeuralNetwork:
                 #self.batch_creator(BATCH_SIZE)
                 cost = self.tf_graph.run_with_cost(batch_x, batch_y)
                 mean_error += cost / total_batch
-            print("Epoch:", (epoch), "cost =", mean_error, flush=True)
+            if epoch % 1000 == 0:
+                print("Epoch:", (epoch), "cost =", mean_error, flush=True)
         print('Training complete')
 
     def feed(self, input_matrix):
@@ -70,14 +71,14 @@ class TensorFlowGraph():
         first_hidden_layer = tf.add(tf.matmul(self.input_placeholder,
                                               synapses['input_to_hidden']),
                                     first_hidden_biases)
-        first_hidden_layer = tf.nn.elu(first_hidden_layer)
+        first_hidden_layer = tf.nn.relu(first_hidden_layer)
         second_hidden_layer = tf.add(tf.matmul(first_hidden_layer,
                                                synapses['hidden_to_hidden']),
                                      second_hidden_biases)
-        second_hidden_layer = tf.nn.elu(second_hidden_layer)
+        second_hidden_layer = tf.nn.relu(second_hidden_layer)
         output_layer = tf.matmul(second_hidden_layer,
                                  synapses['hidden_to_output']) + output_bias
-        self.output_layer = tf.nn.sigmoid(output_layer)
+        self.output_layer = tf.clip_by_value(output_layer, 0, 1)
         cost_function, optimizer = self.build_cost_and_optimizer(self.output_layer)
         self.cost_function = cost_function
         self.optimizer = optimizer

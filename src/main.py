@@ -26,16 +26,14 @@ def initialise():
     with open(MISSING_WORDS_FILE, 'w') as write_stream:
         for missing_word in MISSING_WORDS:
             write_stream.write(missing_word +'\n')
-    corpus_size = len(processed_corpus)
-    split_size = int(corpus_size/2)
-    neural_net = train(processed_corpus[:split_size])
-    test(neural_net, processed_corpus[split_size:])
+    training_set, test_set = train_and_test_split(processed_corpus)
+    neural_net = train(training_set)
+    test(neural_net, test_set)
     neural_net.save('./trained_model.tf')
 
-def train(processed_corpus):
-    """Create and train neural network"""
-    input_matrix = []
-    output_vector = []
+def train_and_test_split(processed_corpus):
+    """Return balanced training set for negatives and positives, use rest as test data"""
+    positive_inputs = []
     negative_inputs = []
     for corpus_entry in processed_corpus:
         feature_matrix = corpus_entry['feature_vectors']
@@ -43,35 +41,48 @@ def train(processed_corpus):
         for i, feature_vector in enumerate(feature_matrix):
             score = scores_vector[i]
             if score[0] == 1:
-                input_matrix.append(feature_vector)
-                output_vector.append(score)
+                positive_inputs.append(feature_vector)
             else:
-                negative_inputs.append((feature_vector, score))
-    positive_size = len(input_matrix)
-    for i in range(int(positive_size/4)):
-        feature_vector, score = negative_inputs[i]
-        input_matrix.append(feature_vector)
-        output_vector.append(score)
-    input_matrix = np.array(input_matrix, dtype='float32')
-    output_vector = np.array(output_vector, dtype='float32')
+                negative_inputs.append(feature_vector)
+    training_pos_size = int(len(positive_inputs)/2)
+    training_inputs = []
+    training_outputs = []
+    test_inputs = []
+    test_outputs = []
+    for i, t_input in enumerate(positive_inputs):
+        if i < training_pos_size:
+            training_inputs.append(t_input)
+            training_outputs.append([1])
+        else:
+            test_inputs.append(t_input)
+            test_outputs.append([1])
+    for i, t_input in enumerate(negative_inputs):
+        if i < training_pos_size:
+            training_inputs.append(t_input)
+            training_outputs.append([0])
+        else:
+            test_inputs.append(t_input)
+            test_outputs.append([0])
+    print('Training set contains ', training_pos_size, 'positive inputs, total size =',
+          len(training_inputs))
+    print('Test set contains ', len(test_inputs), 'in total')
+    training_inputs = np.array(training_inputs, dtype='float32')
+    training_outputs = np.array(training_outputs, dtype='float32')
+    test_inputs = np.array(test_inputs, dtype='float32')
+    test_outputs = np.array(test_outputs, dtype='float32')
+    return ((training_inputs, training_outputs), (test_inputs, test_outputs))
+
+def train(training_set):
+    """Create and train neural network"""
+    input_matrix, output_vector = training_set
     neural_net = NeuralNetwork(input_matrix, output_vector)
     print('Starting NeuralNetwork training...', flush=True)
     neural_net.train()
     return neural_net
 
-def test(neural_net, processed_corpus):#pylint: disable = R0914
+def test(neural_net, test_set):#pylint: disable = R0914
     """Test neural network"""
-    input_matrix = []
-    expected_output = []
-    for corpus_entry in processed_corpus:
-        feature_matrix = corpus_entry['feature_vectors']
-        for feature_vector in feature_matrix:
-            input_matrix.append(feature_vector)
-        scores_vector = corpus_entry['scores_list']
-        for score in scores_vector:
-            expected_output.append(score)
-    input_matrix = np.array(input_matrix)
-    expected_output = np.array(expected_output)
+    input_matrix, expected_output = test_set
     correct = 0
     true_positives = 0
     false_positives = 0
@@ -105,7 +116,7 @@ def find_files_and_process():
             if os.path.isfile(corpus_file):
                 file_counter += 1
                 print('Started processing file no ', file_counter, flush=True)
-                processed = parse_and_featurize_from_scored(corpus_file)
+                processed = featurize_from_training(corpus_file)
                 if processed is not DO_NOT_INCLUDE:
                     features_and_scores.append(processed)
                 else:
@@ -127,7 +138,7 @@ def find_files_and_process():
 #         keywords_vector = clean_and_vectorize(parsed_doc['keywords'])
 #     return calculate_feature_vectors(sentence_list, title_vector, keywords_vector)
 
-def parse_and_featurize_from_scored(corpus_file):
+def featurize_from_training(corpus_file):
     """Parse file and create feature_vectors for each of its sentences"""
     parsed_doc = read_parsed(corpus_file)
     title_vector = clean_and_vectorize(parsed_doc['title'])
