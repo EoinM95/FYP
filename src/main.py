@@ -63,9 +63,9 @@ def train_and_test_split(processed_corpus):
         else:
             test_inputs.append(t_input)
             test_outputs.append([0])
-    print('Training set contains ', training_pos_size, 'positive inputs, total size =',
+    print('Training set contains ', training_pos_size, 'summary-worthy sentences, total size =',
           len(training_inputs))
-    print('Test set contains ', len(test_inputs), 'in total')
+    print('Test set contains ', len(test_inputs), 'sentences')
     training_inputs = np.array(training_inputs, dtype='float32')
     training_outputs = np.array(training_outputs, dtype='float32')
     test_inputs = np.array(test_inputs, dtype='float32')
@@ -90,7 +90,7 @@ def test(neural_net, test_set):#pylint: disable = R0914
     generated_output = neural_net.feed(input_matrix)
     for i, output in enumerate(generated_output):
         expected = expected_output[i][0]
-        output = round(output[0], 2)
+        output = round(output[0])
         if expected == output:
             correct += 1
         if expected == 1 and output == 1:
