@@ -67,7 +67,6 @@ class TensorFlowGraph():
         self.output_placeholder = tf.placeholder(tf.float32, [None, 1])
         first_hidden_biases = tf.Variable(tf.random_normal([hidden_nodes]))
         second_hidden_biases = tf.Variable(tf.random_normal([int(hidden_nodes/2)]))
-        output_bias = tf.Variable(tf.random_normal([1], seed=SEED))
         first_hidden_layer = tf.add(tf.matmul(self.input_placeholder,
                                               synapses['input_to_hidden']),
                                     first_hidden_biases)
@@ -77,7 +76,7 @@ class TensorFlowGraph():
                                      second_hidden_biases)
         second_hidden_layer = tf.nn.relu(second_hidden_layer)
         output_layer = tf.matmul(second_hidden_layer,
-                                 synapses['hidden_to_output']) #+ output_bias
+                                 synapses['hidden_to_output'])
         self.output_layer = output_layer
         cost_function, optimizer = self.build_cost_and_optimizer(self.output_layer)
         self.cost_function = cost_function
