@@ -57,7 +57,7 @@ def train_and_test_split(processed_corpus):
             test_inputs.append(t_input)
             test_outputs.append([1])
     for i, t_input in enumerate(negative_inputs):
-        if i < training_pos_size:
+        if i < 2*training_pos_size:
             training_inputs.append(t_input)
             training_outputs.append([0])
         else:
