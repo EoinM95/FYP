@@ -77,7 +77,7 @@ class TensorFlowGraph():
                                      second_hidden_biases)
         second_hidden_layer = tf.nn.relu(second_hidden_layer)
         output_layer = tf.matmul(second_hidden_layer,
-                                 synapses['hidden_to_output']) + output_bias
+                                 synapses['hidden_to_output']) #+ output_bias
         self.output_layer = output_layer
         cost_function, optimizer = self.build_cost_and_optimizer(self.output_layer)
         self.cost_function = cost_function
