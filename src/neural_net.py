@@ -23,7 +23,7 @@ class NeuralNetwork:
         print('Starting training session')
         for epoch in range(EPOCHS):
             mean_error = 0
-            total_batch = int(self.input_matrix.shape[0]/BATCH_SIZE)
+            total_batch = 1#int(self.input_matrix.shape[0]/BATCH_SIZE)
             if total_batch == 0:
                 total_batch = 1
             for _ in range(total_batch):
