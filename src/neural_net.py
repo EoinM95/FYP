@@ -1,13 +1,12 @@
 """Functions and classes for simulating a trainable ANN"""
-import random
 import os
-import numpy as np
 import tensorflow as tf #pylint: disable = E0401
 
 LEARNING_RATE = 0.15
 SEED = 1
-EPOCHS = 10000
-BATCH_SIZE = 100
+EPOCHS = 100000
+HIDDEN_LAYER_A_FACTOR = 3
+HIDDEN_LAYER_B_FACTOR = 2
 
 class NeuralNetwork:
     """Class representing a trainable NeuralNetwork with one hidden layer"""
@@ -15,44 +14,20 @@ class NeuralNetwork:
         self.input_matrix = input_matrix
         self.output_vector = output_vector
         self.input_nodes = input_matrix.shape[1]
-        self.hidden_nodes = self.input_nodes + 1
-        self.tf_graph = TensorFlowGraph(self.input_nodes, self.hidden_nodes, tfsession_file)
+        self.tf_graph = TensorFlowGraph(self.input_nodes, tfsession_file)
 
     def train(self):
         """Train neural net synapses by feeding forward then adjusting by back propagation"""
         print('Starting training session')
         for epoch in range(EPOCHS):
-            mean_error = 0
-            total_batch = 1#int(self.input_matrix.shape[0]/BATCH_SIZE)
-            if total_batch == 0:
-                total_batch = 1
-            for _ in range(total_batch):
-                batch_x, batch_y = self.input_matrix, self.output_vector
-                #self.batch_creator(BATCH_SIZE)
-                cost = self.tf_graph.run_with_cost(batch_x, batch_y)
-                mean_error += cost / total_batch
+            cost = self.tf_graph.run_with_cost(self.input_matrix, self.output_vector)
             if epoch % 1000 == 0:
-                print("Epoch:", (epoch), "cost =", mean_error, flush=True)
+                print("Epoch:", (epoch), "cost =", cost, flush=True)
         print('Training complete')
 
     def feed(self, input_matrix):
         """Calculate outputs for given input_matrix"""
         return self.tf_graph.run_for_output(input_matrix)
-
-    def batch_creator(self, batch_size):
-        """Create batch with random samples and return appropriate format"""
-        dataset_size = self.input_matrix.shape[0]
-        if batch_size > dataset_size:
-            return self.input_matrix, self.output_vector
-        sample = random.sample(range(dataset_size), batch_size)
-        batch_x = []
-        batch_y = []
-        for index in sample:
-            batch_x.append(self.input_matrix[index])
-            batch_y.append(self.output_vector[index])
-        batch_x = np.array(batch_x, dtype='float32')
-        batch_y = np.array(batch_y, dtype='float32')
-        return batch_x, batch_y
 
     def save(self, filename):
         """Save the neural net to file"""
@@ -61,16 +36,18 @@ class NeuralNetwork:
 class TensorFlowGraph():
     """Wrapper class for TensorFlow libraries to build the computation graph
     and maintain a reference to the session and variables used for training """
-    def __init__(self, input_nodes, hidden_nodes, tfsession_file=None):
-        synapses = build_synapses(input_nodes, hidden_nodes)
+    def __init__(self, input_nodes, tfsession_file=None):
+        hidden_layer_1_nodes = HIDDEN_LAYER_A_FACTOR * input_nodes
+        hidden_layer_2_nodes = int(input_nodes / HIDDEN_LAYER_B_FACTOR)
+        synapses = build_synapses(input_nodes, hidden_layer_1_nodes, hidden_layer_2_nodes)
         self.input_placeholder = tf.placeholder(tf.float32, [None, input_nodes])
         self.output_placeholder = tf.placeholder(tf.float32, [None, 1])
-        first_hidden_biases = tf.Variable(tf.random_normal([hidden_nodes]))
-        second_hidden_biases = tf.Variable(tf.random_normal([int(hidden_nodes/2)]))
+        first_hidden_biases = tf.Variable(tf.random_normal([hidden_layer_1_nodes]))
+        second_hidden_biases = tf.Variable(tf.random_normal([hidden_layer_2_nodes]))
         first_hidden_layer = tf.add(tf.matmul(self.input_placeholder,
                                               synapses['input_to_hidden']),
                                     first_hidden_biases)
-        first_hidden_layer = tf.nn.relu(first_hidden_layer)
+        first_hidden_layer = tf.nn.sigmoid(first_hidden_layer)
         second_hidden_layer = tf.add(tf.matmul(first_hidden_layer,
                                                synapses['hidden_to_hidden']),
                                      second_hidden_biases)
@@ -78,7 +55,7 @@ class TensorFlowGraph():
         output_layer = tf.matmul(second_hidden_layer,
                                  synapses['hidden_to_output'])
         self.output_layer = output_layer
-        cost_function, optimizer = self.build_cost_and_optimizer(self.output_layer)
+        cost_function, optimizer = self.build_cost_and_optimizer()
         self.cost_function = cost_function
         self.optimizer = optimizer
         self.sess = tf.Session()
@@ -88,10 +65,10 @@ class TensorFlowGraph():
             saver = tf.train.Saver()
             saver.restore(self.sess, tfsession_file)
 
-    def build_cost_and_optimizer(self, output_layer):
+    def build_cost_and_optimizer(self):
         """Define and build tf variables representing cost/error function and
         training/optimizer function"""
-        cost_function = tf.reduce_mean(tf.abs(self.output_placeholder - output_layer))
+        cost_function = tf.reduce_mean(tf.abs(self.output_placeholder - self.output_layer))
         optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE).minimize(cost_function)
         return cost_function, optimizer
 
@@ -114,11 +91,12 @@ class TensorFlowGraph():
         new_file.close()
         saver.save(self.sess, os.path.join(os.getcwd(), save_location))
 
-def build_synapses(input_nodes, hidden_nodes):
+def build_synapses(input_nodes, hidden_layer_1_nodes, hidden_layer_2_nodes):
     """Create variables representing synapses in the neural net"""
-    input_to_hidden_1 = tf.Variable(tf.random_normal([input_nodes, hidden_nodes]))
-    hidden_1_to_hidden_2 = tf.Variable(tf.random_normal([hidden_nodes, int(hidden_nodes/2)]))
-    hidden_2_output = tf.Variable(tf.random_normal([int(hidden_nodes/2), 1]))
+    input_to_hidden_1 = tf.Variable(tf.random_normal([input_nodes, hidden_layer_1_nodes]))
+    hidden_1_to_hidden_2 = tf.Variable(tf.random_normal([hidden_layer_1_nodes,
+                                                         hidden_layer_2_nodes]))
+    hidden_2_output = tf.Variable(tf.random_normal([hidden_layer_2_nodes, 1]))
     return {'input_to_hidden': input_to_hidden_1,
             'hidden_to_hidden': hidden_1_to_hidden_2,
             'hidden_to_output': hidden_2_output}
