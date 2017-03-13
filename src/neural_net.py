@@ -6,7 +6,7 @@ import tensorflow as tf #pylint: disable = E0401
 
 LEARNING_RATE = 0.15
 SEED = 1
-EPOCHS = 10000
+EPOCHS = 1000000
 BATCH_SIZE = 100
 
 class NeuralNetwork:
@@ -15,7 +15,7 @@ class NeuralNetwork:
         self.input_matrix = input_matrix
         self.output_vector = output_vector
         self.input_nodes = input_matrix.shape[1]
-        self.hidden_nodes = self.input_nodes + 1
+        self.hidden_nodes = int(self.input_nodes/2)
         self.tf_graph = TensorFlowGraph(self.input_nodes, self.hidden_nodes, tfsession_file)
 
     def train(self):
@@ -66,16 +66,16 @@ class TensorFlowGraph():
         self.input_placeholder = tf.placeholder(tf.float32, [None, input_nodes])
         self.output_placeholder = tf.placeholder(tf.float32, [None, 1])
         first_hidden_biases = tf.Variable(tf.random_normal([hidden_nodes]))
-        second_hidden_biases = tf.Variable(tf.random_normal([int(hidden_nodes/2)]))
+        #second_hidden_biases = tf.Variable(tf.random_normal([int(hidden_nodes/2)]))
         first_hidden_layer = tf.add(tf.matmul(self.input_placeholder,
                                               synapses['input_to_hidden']),
                                     first_hidden_biases)
         first_hidden_layer = tf.nn.relu(first_hidden_layer)
-        second_hidden_layer = tf.add(tf.matmul(first_hidden_layer,
-                                               synapses['hidden_to_hidden']),
-                                     second_hidden_biases)
-        second_hidden_layer = tf.nn.relu(second_hidden_layer)
-        output_layer = tf.matmul(second_hidden_layer,
+        #second_hidden_layer = tf.add(tf.matmul(first_hidden_layer,
+        #                                       synapses['hidden_to_hidden']),
+        #                             second_hidden_biases)
+        #second_hidden_layer = tf.nn.relu(second_hidden_layer)
+        output_layer = tf.matmul(first_hidden_layer,
                                  synapses['hidden_to_output'])
         self.output_layer = output_layer
         cost_function, optimizer = self.build_cost_and_optimizer(self.output_layer)
@@ -117,8 +117,8 @@ class TensorFlowGraph():
 def build_synapses(input_nodes, hidden_nodes):
     """Create variables representing synapses in the neural net"""
     input_to_hidden_1 = tf.Variable(tf.random_normal([input_nodes, hidden_nodes]))
-    hidden_1_to_hidden_2 = tf.Variable(tf.random_normal([hidden_nodes, int(hidden_nodes/2)]))
-    hidden_2_output = tf.Variable(tf.random_normal([int(hidden_nodes/2), 1]))
+    #hidden_1_to_hidden_2 = tf.Variable(tf.random_normal([hidden_nodes, int(hidden_nodes/2)]))
+    hidden_2_output = tf.Variable(tf.random_normal([hidden_nodes, 1]))
     return {'input_to_hidden': input_to_hidden_1,
-            'hidden_to_hidden': hidden_1_to_hidden_2,
+            #'hidden_to_hidden': hidden_1_to_hidden_2,
             'hidden_to_output': hidden_2_output}
