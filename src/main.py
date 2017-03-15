@@ -18,9 +18,17 @@ NEURAL_NET = 1
 NAIVE_BAYES = 0
 CLASSIFIER_TYPE = NEURAL_NET
 
+class Summariser():
+
+    def __init__(self, classifier_type=CLASSIFIER_TYPE):
+        self.vector_dictionary = read_vectors_from_file(VECTOR_FILE)
+        self.classifier_type = classifier_type
+
+    def summarise(self, filename):
+        feature_vectors = featurize_from_new(filename, self.vector_dictionary)
 
 
-def initialise():
+def train_and_test_model():
     """Read in vectors, read in all scored summaries and corresponding originals for title+keywords
     Then calculate feature vectors for every sentence in every text"""
     global VECTOR_DICTIONARY #pylint: disable = W0603
@@ -135,18 +143,13 @@ def find_files_and_process():
     print('Found and processed ', file_counter, ' usable texts and scored summaries', flush=True)
     return features_and_scores
 
-# def parse_and_featurize_from_orig(filename):
-#     """Parse file and create feature_vectors for each of its sentences"""
-#     parsed_doc = parse_original_text(filename)
-#     doc_body = parsed_doc['text']
-#     sentence_list = create_sentence_list(doc_body)
-#     title_vector = clean_and_vectorize(parsed_doc['title'])
-#     has_keywords = parsed_doc['has_keywords']
-#     if not has_keywords:
-#         keywords_vector = []
-#     else:
-#         keywords_vector = clean_and_vectorize(parsed_doc['keywords'])
-#     return calculate_feature_vectors(sentence_list, title_vector, keywords_vector)
+def featurize_from_new(filename, vector_dictionary):
+    """Parse file and create feature_vectors for each of its sentences"""
+    parsed_doc = parse_standard_text(filename)
+    doc_body = parsed_doc['text']
+    sentence_list = create_sentence_list(doc_body)
+    title_vector = clean_and_vectorize(parsed_doc['title'])
+    return calculate_feature_vectors(sentence_list, title_vector)
 
 def featurize_from_training(corpus_file):
     """Parse file and create feature_vectors for each of its sentences"""

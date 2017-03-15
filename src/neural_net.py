@@ -5,9 +5,9 @@ import tensorflow as tf #pylint: disable = E0401
 
 LEARNING_RATE = 0.15
 SEED = 1
-EPOCHS = 100000
+EPOCHS = 10000000
 HIDDEN_LAYER_A_FACTOR = 4
-HIDDEN_LAYER_B_FACTOR = 2
+HIDDEN_LAYER_B_FACTOR = 3
 
 class NeuralNetwork():
     """Class representing a trainable NeuralNetwork with one hidden layer"""
@@ -39,7 +39,7 @@ class TensorFlowGraph():
     and maintain a reference to the session and variables used for training """
     def __init__(self, input_nodes, tfsession_file=None):
         hidden_layer_1_nodes = HIDDEN_LAYER_A_FACTOR * input_nodes
-        hidden_layer_2_nodes = int(input_nodes / HIDDEN_LAYER_B_FACTOR)
+        hidden_layer_2_nodes = int(input_nodes * HIDDEN_LAYER_B_FACTOR)
         synapses = build_synapses(input_nodes, hidden_layer_1_nodes, hidden_layer_2_nodes)
         self.input_placeholder = tf.placeholder(tf.float32, [None, input_nodes])
         self.output_placeholder = tf.placeholder(tf.float32, [None, 1])
