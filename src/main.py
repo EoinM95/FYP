@@ -6,7 +6,8 @@ from corpus_parser import read_parsed
 from sentence_splitter import split, tokenize
 from utilities import remove_stop_words, sum_of_vectors, DO_NOT_INCLUDE, stem, tag
 from features import calculate_feature_vectors
-from neural_net import NeuralNetwork
+#from neural_net import NeuralNetwork
+from nb_classifier import NBClassifier
 
 VECTOR_DICTIONARY = {}
 MISSING_WORDS = []
@@ -27,9 +28,10 @@ def initialise():
         for missing_word in MISSING_WORDS:
             write_stream.write(missing_word +'\n')
     training_set, test_set = train_and_test_split(processed_corpus)
-    neural_net = train(training_set)
-    test(neural_net, test_set)
-    neural_net.save('./trained_model.tf')
+    #neural_net = train(training_set)
+    classifier = train(training_set)
+    test(classifier, test_set)
+    #neural_net.save('./trained_model.tf')
 
 def train_and_test_split(processed_corpus):
     """Return balanced training set for negatives and positives, use rest as test data"""
@@ -75,10 +77,13 @@ def train_and_test_split(processed_corpus):
 def train(training_set):
     """Create and train neural network"""
     input_matrix, output_vector = training_set
-    neural_net = NeuralNetwork(input_matrix, output_vector)
-    print('Starting NeuralNetwork training...', flush=True)
-    neural_net.train()
-    return neural_net
+    #neural_net = NeuralNetwork(input_matrix, output_vector)
+    classifier = NBClassifier(input_matrix, output_vector)
+    #print('Starting NeuralNetwork training...', flush=True)
+    #neural_net.train()
+    classifier.train()
+    #return neural_net
+    return classifier
 
 def test(neural_net, test_set):#pylint: disable = R0914
     """Test neural network"""
@@ -90,7 +95,7 @@ def test(neural_net, test_set):#pylint: disable = R0914
     generated_output = neural_net.feed(input_matrix)
     for i, output in enumerate(generated_output):
         expected = expected_output[i][0]
-        output = round(output[0])
+        output = round(output)
         if expected == output:
             correct += 1
         if expected == 1 and output == 1:

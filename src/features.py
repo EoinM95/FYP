@@ -33,6 +33,7 @@ def calculate_feature_vectors(sentence_list, title_vector):#pylint: disable = R0
         feature_vector = np.append(feature_vector, values=length)
         feature_vectors[i] = feature_vector
     feature_vectors = np.array(feature_vectors)
+    feature_vectors = np.round(feature_vectors, decimals=1)
     return feature_vectors
 
 def compute_tf_isfs_for_text(sentence_list):

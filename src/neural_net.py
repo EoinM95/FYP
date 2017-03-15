@@ -5,8 +5,8 @@ import tensorflow as tf #pylint: disable = E0401
 LEARNING_RATE = 0.15
 SEED = 1
 EPOCHS = 100000
-HIDDEN_LAYER_A_FACTOR = 3
-HIDDEN_LAYER_B_FACTOR = 2
+HIDDEN_LAYER_A_FACTOR = 4
+HIDDEN_LAYER_B_FACTOR = 3
 
 class NeuralNetwork:
     """Class representing a trainable NeuralNetwork with one hidden layer"""
