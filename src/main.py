@@ -6,7 +6,7 @@ from corpus_parser import read_parsed
 from sentence_splitter import split, tokenize
 from utilities import remove_stop_words, sum_of_vectors, DO_NOT_INCLUDE, stem, tag
 from features import calculate_feature_vectors
-#from neural_net import NeuralNetwork
+from neural_net import NeuralNetwork
 from nb_classifier import NBClassifier
 
 VECTOR_DICTIONARY = {}
@@ -14,7 +14,9 @@ MISSING_WORDS = []
 MISSING_WORDS_FILE = 'missing_words.txt'
 VECTOR_FILE = '..\\GoogleNews-vectors-negative300.bin' #'..\\vectors.txt'
 CORPUS_DIRECTORY = '..\\duc01_tagged_meo_data\\'
-ACCEPTABLE = 0.1
+NEURAL_NET = 1
+NAIVE_BAYES = 0
+CLASSIFIER_TYPE = NEURAL_NET
 
 
 
@@ -28,10 +30,12 @@ def initialise():
         for missing_word in MISSING_WORDS:
             write_stream.write(missing_word +'\n')
     training_set, test_set = train_and_test_split(processed_corpus)
-    #neural_net = train(training_set)
     classifier = train(training_set)
     test(classifier, test_set)
-    #neural_net.save('./trained_model.tf')
+    if CLASSIFIER_TYPE == NEURAL_NET:
+        classifier.save('./trained_model.tf')
+    else:
+        classifier.save('./bayes_model.nb')
 
 def train_and_test_split(processed_corpus):
     """Return balanced training set for negatives and positives, use rest as test data"""
@@ -77,22 +81,23 @@ def train_and_test_split(processed_corpus):
 def train(training_set):
     """Create and train neural network"""
     input_matrix, output_vector = training_set
-    #neural_net = NeuralNetwork(input_matrix, output_vector)
-    classifier = NBClassifier(input_matrix, output_vector)
-    #print('Starting NeuralNetwork training...', flush=True)
-    #neural_net.train()
+    classifier = None
+    if CLASSIFIER_TYPE == NEURAL_NET:
+        classifier = NeuralNetwork(input_matrix, output_vector)
+    else:
+        classifier = NBClassifier(input_matrix, output_vector) #pylint: disable = R0204
+    print('Starting classifier training...', flush=True)
     classifier.train()
-    #return neural_net
     return classifier
 
-def test(neural_net, test_set):#pylint: disable = R0914
+def test(classifier, test_set):#pylint: disable = R0914
     """Test neural network"""
     input_matrix, expected_output = test_set
     correct = 0
     true_positives = 0
     false_positives = 0
     false_negatives = 0
-    generated_output = neural_net.feed(input_matrix)
+    generated_output = classifier.feed(input_matrix)
     for i, output in enumerate(generated_output):
         expected = expected_output[i][0]
         output = round(output)

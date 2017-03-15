@@ -3,7 +3,6 @@
 from sklearn.externals import joblib #pylint: disable = E0401
 from sklearn.naive_bayes import GaussianNB #pylint: disable = E0401
 
-
 class NBClassifier():
     """Naive bayesian classifier"""
     def __init__(self, input_matrix, output_vector, saved_model_file=None):

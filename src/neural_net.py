@@ -1,14 +1,15 @@
 """Functions and classes for simulating a trainable ANN"""
 import os
+import numpy as np
 import tensorflow as tf #pylint: disable = E0401
 
 LEARNING_RATE = 0.15
 SEED = 1
 EPOCHS = 100000
 HIDDEN_LAYER_A_FACTOR = 4
-HIDDEN_LAYER_B_FACTOR = 3
+HIDDEN_LAYER_B_FACTOR = 2
 
-class NeuralNetwork:
+class NeuralNetwork():
     """Class representing a trainable NeuralNetwork with one hidden layer"""
     def __init__(self, input_matrix, output_vector, tfsession_file=None):
         self.input_matrix = input_matrix
@@ -27,7 +28,7 @@ class NeuralNetwork:
 
     def feed(self, input_matrix):
         """Calculate outputs for given input_matrix"""
-        return self.tf_graph.run_for_output(input_matrix)
+        return np.array(self.tf_graph.run_for_output(input_matrix)).flatten()
 
     def save(self, filename):
         """Save the neural net to file"""
@@ -51,10 +52,10 @@ class TensorFlowGraph():
         second_hidden_layer = tf.add(tf.matmul(first_hidden_layer,
                                                synapses['hidden_to_hidden']),
                                      second_hidden_biases)
-        second_hidden_layer = tf.nn.relu(second_hidden_layer)
+        second_hidden_layer = tf.nn.sigmoid(second_hidden_layer)
         output_layer = tf.matmul(second_hidden_layer,
                                  synapses['hidden_to_output'])
-        self.output_layer = tf.clip_by_value(output_layer, 0, 1)
+        self.output_layer = output_layer
         cost_function, optimizer = self.build_cost_and_optimizer()
         self.cost_function = cost_function
         self.optimizer = optimizer

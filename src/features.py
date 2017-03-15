@@ -4,7 +4,7 @@ from collections import Counter
 from scipy.spatial.distance import cosine
 import numpy as np
 
-#feature_vec = [tf*isf, sim_to_title, centroid_cohesion, sentence_cohesion, sim_to_keywords]
+#feature_vec = [tf*isf, sim_to_title, centroid_cohesion, sentence_cohesion, pns, length]
 def calculate_feature_vectors(sentence_list, title_vector):#pylint: disable = R0914
     """Calculate the normalised feature vector for every sentence"""
     feature_vectors = compute_tf_isfs_for_text(sentence_list)
