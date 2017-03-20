@@ -36,12 +36,15 @@ class Summariser():
                 print(sentence_list[i])
 
 def build_summariser(vector_dictionary, classifier_type, trained_model_file=None):
+    """Process the default corpus, train and test a classifier and return a summariser object"""
     processed_corpus = find_training_files_and_process(vector_dictionary)
     classifier = None
     if trained_model_file is not None:
         classifier = Classifier(classifier_type, SENTENCE_FEATURES, trained_model_file)
     else:
         classifier = build_and_test_classifier(classifier_type, SENTENCE_FEATURES, processed_corpus)
+    summariser = Summariser(classifier, vector_dictionary)
+    return summariser
 
 
 def find_training_files_and_process(vector_dictionary):

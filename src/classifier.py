@@ -66,6 +66,7 @@ class Classifier:
         return self.classifier.feed(input_matrix)
 
     def save(self, filename):
+        """Save classifier to file"""
         self.classifier.save(filename)
 
 def build_and_test_classifier(classifier_type, sentence_features, processed_corpus):
@@ -79,6 +80,7 @@ def build_and_test_classifier(classifier_type, sentence_features, processed_corp
         classifier.save('./trained_model.tf')
     else:
         classifier.save('./bayes_model.nb')
+    return classifier
 
 def train_and_test_split(processed_corpus):
     """Return balanced training set for negatives and positives, use rest as test data"""
