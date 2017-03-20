@@ -11,17 +11,15 @@ HIDDEN_LAYER_B_FACTOR = 3
 
 class NeuralNetwork():
     """Class representing a trainable NeuralNetwork with one hidden layer"""
-    def __init__(self, input_matrix, output_vector, tfsession_file=None):
-        self.input_matrix = input_matrix
-        self.output_vector = output_vector
-        self.input_nodes = input_matrix.shape[1]
+    def __init__(self, input_nodes, tfsession_file=None):
+        self.input_nodes = input_nodes
         self.tf_graph = TensorFlowGraph(self.input_nodes, tfsession_file)
 
-    def train(self):
+    def train(self, input_matrix, output_vector):
         """Train neural net synapses by feeding forward then adjusting by back propagation"""
         print('Starting training session')
         for epoch in range(EPOCHS):
-            cost = self.tf_graph.run_with_cost(self.input_matrix, self.output_vector)
+            cost = self.tf_graph.run_with_cost(input_matrix, output_vector)
             if epoch % 1000 == 0:
                 print("Epoch:", (epoch), "cost =", cost, flush=True)
         print('Training complete')
