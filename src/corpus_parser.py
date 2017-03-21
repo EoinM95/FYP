@@ -2,6 +2,10 @@
 import xml.etree.ElementTree as ET
 import re
 from sentence_splitter import split
+from utilities import DO_NOT_INCLUDE, score_threshold
+
+HEADER_A_START = '<excludedsys'
+HEADER_B_START = '<sysjudg_'
 
 DOC_END = '</DOC>'
 PUNCTUATION_PATTERN = r'([,\'\";&\-:\$%`/\\{}\*`_]|\.\.\.)'
@@ -23,6 +27,8 @@ XML_AMP_PATTERN = r'&(?!amp;)'
 XML_AMP_REGEX = re.compile(XML_AMP_PATTERN)
 XML_ATT_PATTERN = r'([A-Z])=([0-9]+)'
 XML_ATT_REGEX = re.compile(XML_ATT_PATTERN)
+SQ_BRACKET_PATTERN = r'[\[\]]'
+SQ_BRACKET_REGEX = re.compile(SQ_BRACKET_PATTERN)
 
 def parse_from_new(filename):
     """Parse a novel document"""
@@ -35,7 +41,63 @@ def parse_from_new(filename):
     sentences = split(doc_body)
     return {'title':title, 'sentences': sentences}
 
-def read_from_training(filename):
+def read_title_from_tipster_orig(filename):
+    """Read in original text"""
+    xml_string = ''
+    with open(filename) as stream:
+        for line in stream:
+            line = SQ_BRACKET_REGEX.sub('\"', line)
+            line = XML_AMP_REGEX.sub(r'&amp;', line)
+            xml_string += line
+    root = ET.fromstring(xml_string)
+    title = find_title(root)
+    return clean_input(title)
+
+
+
+def read_from_tipster_scored(filename, tag_type='categ'):
+    """Parse a scored summary of a text from a file"""
+    xml_string = '<DOC>'
+    header_lines = []
+    with open(filename) as stream:
+        for line in stream:
+            if line.startswith(HEADER_A_START) or line.startswith(HEADER_B_START):
+                header_lines.append(line)
+            else:
+                line = SQ_BRACKET_REGEX.sub('\"', line)
+                line = XML_AMP_REGEX.sub(r'&amp;', line)
+                xml_string += line
+    xml_string = xml_string + '</DOC>'
+    root = ET.fromstring(xml_string)
+    sentences = []
+    max_best_score = 0
+    max_fixed_score = 0
+    for sentence_tag in root.findall('S'):
+        sentence = sentence_tag.text
+        best_score = sentence_tag.get('sys_'+tag_type+'_best')
+        if best_score is None:
+            best_score = 0
+        else:
+            best_score = len(best_score.split(','))
+            if best_score > max_best_score:
+                max_best_score = best_score
+        fixed_score = sentence_tag.get('sys_'+tag_type+'_fixed')
+        if fixed_score is None:
+            fixed_score = 0
+        else:
+            fixed_score = len(fixed_score.split(','))
+            if fixed_score > max_fixed_score:
+                max_fixed_score = fixed_score
+        sentences.append({'sentence': clean_input(sentence),
+                          'best_score': best_score, 'fixed_score': fixed_score})
+    if max_best_score == 0:
+        return DO_NOT_INCLUDE
+    for sentence in sentences:
+        sentence['best_score'] = score_threshold(sentence['best_score'] / max_best_score)
+        sentence['fixed_score'] = score_threshold(sentence['fixed_score'] / max_fixed_score)
+    return sentences
+
+def read_from_duc(filename):
     """Parse a training corpus text from a file"""
     xml_string = ''
     header_lines = []
@@ -96,6 +158,10 @@ def find_title(root):
             for node in title_nodes:
                 for sentence_tag in node.iter('TI'):
                     title += sentence_tag.text
+    if title == '':
+        title = root.find('HL').text
+        title = TITLE_DIVIDER_REGEX.split(title)
+        title = title[0]
     return clean_input(title)
 
 def clean_input(text):
@@ -114,7 +180,7 @@ if __name__ == '__main__':
     TEST_TEXT = '..\\duc01_tagged_meo_data\\d26e\\FBIS4-23474.S'
     #'..\\duc01_tagged_meo_data\\d36f\\AP890322-0078.S'
     #'..\\duc01_tagged_meo_data\\d01a\\SJMN91-06184003.S'
-    PARSED = read_from_training(TEST_TEXT)
+    PARSED = read_from_duc(TEST_TEXT)
     print('title = ', PARSED['title'])
     #PARSED_SENTENCES = PARSED['sentences']
     #for list_entry in PARSED_SENTENCES:

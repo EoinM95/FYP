@@ -69,11 +69,12 @@ class Classifier:
         """Save classifier to file"""
         self.classifier.save(filename)
 
-def build_and_test_classifier(classifier_type, sentence_features, processed_corpus,
-                              trained_model_file):
+def build_and_test_classifier(classifier_type, sentence_features, training_corpus,
+                              test_corpus, trained_model_file):
     """Read in vectors, read in all scored summaries and corresponding originals for title+keywords
     Then calculate feature vectors for every sentence in every text"""
-    training_set, test_set = train_and_test_split(processed_corpus)
+    training_set = create_input_output_vecs(training_corpus)
+    test_set = create_input_output_vecs(test_corpus)
     classifier = Classifier(classifier_type, sentence_features, trained_model_file)
     if trained_model_file is None:
         classifier.train(training_set)
@@ -85,43 +86,22 @@ def build_and_test_classifier(classifier_type, sentence_features, processed_corp
             classifier.save('./bayes_model.nb')
     return classifier
 
-def train_and_test_split(processed_corpus):
-    """Return balanced training set for negatives and positives, use rest as test data"""
-    positive_inputs = []
-    negative_inputs = []
+def create_input_output_vecs(processed_corpus):
+    """Turn list into two seperate lists of inputs and outputs"""
+    inputs = []
+    outputs = []
+    positives = 0
     for corpus_entry in processed_corpus:
         feature_matrix = corpus_entry['feature_vectors']
         scores_vector = corpus_entry['scores_list']
         for i, feature_vector in enumerate(feature_matrix):
             score = scores_vector[i]
             if score[0] == 1:
-                positive_inputs.append(feature_vector)
-            else:
-                negative_inputs.append(feature_vector)
-    training_pos_size = int(len(positive_inputs)/2)
-    training_inputs = []
-    training_outputs = []
-    test_inputs = []
-    test_outputs = []
-    for i, t_input in enumerate(positive_inputs):
-        if i < training_pos_size:
-            training_inputs.append(t_input)
-            training_outputs.append([1])
-        else:
-            test_inputs.append(t_input)
-            test_outputs.append([1])
-    for i, t_input in enumerate(negative_inputs):
-        if i < 2*training_pos_size:
-            training_inputs.append(t_input)
-            training_outputs.append([0])
-        else:
-            test_inputs.append(t_input)
-            test_outputs.append([0])
-    print('Training set contains ', training_pos_size, 'summary-worthy sentences, total size =',
-          len(training_inputs))
-    print('Test set contains ', len(test_inputs), 'sentences')
-    training_inputs = np.array(training_inputs, dtype='float32')
-    training_outputs = np.array(training_outputs, dtype='float32')
-    test_inputs = np.array(test_inputs, dtype='float32')
-    test_outputs = np.array(test_outputs, dtype='float32')
-    return ((training_inputs, training_outputs), (test_inputs, test_outputs))
+                positives += 1
+            inputs.append(feature_vector)
+            outputs.append(score)
+    print('Set contains ', positives, 'summary-worthy sentences, total size =',
+          len(inputs))
+    inputs = np.array(inputs, dtype='float32')
+    outputs = np.array(outputs, dtype='float32')
+    return (inputs, outputs)
