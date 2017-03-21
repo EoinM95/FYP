@@ -9,9 +9,9 @@ no output bias (try both), no output clipping"""
 
 LEARNING_RATE = 0.15
 SEED = 1
-EPOCHS = 10000000
-HIDDEN_LAYER_A_FACTOR = 4
-HIDDEN_LAYER_B_FACTOR = 3
+EPOCHS = 100000
+HIDDEN_LAYER_A_FACTOR = 1
+HIDDEN_LAYER_B_FACTOR = .5
 
 class NeuralNetwork():
     """Class representing a trainable NeuralNetwork with one hidden layer"""
@@ -40,7 +40,7 @@ class TensorFlowGraph():
     """Wrapper class for TensorFlow libraries to build the computation graph
     and maintain a reference to the session and variables used for training """
     def __init__(self, input_nodes, tfsession_file=None):
-        hidden_layer_1_nodes = HIDDEN_LAYER_A_FACTOR * input_nodes
+        hidden_layer_1_nodes = (HIDDEN_LAYER_A_FACTOR * input_nodes) + 1
         hidden_layer_2_nodes = int(input_nodes * HIDDEN_LAYER_B_FACTOR)
         synapses = build_synapses(input_nodes, hidden_layer_1_nodes, hidden_layer_2_nodes)
         self.input_placeholder = tf.placeholder(tf.float32, [None, input_nodes])
@@ -50,13 +50,14 @@ class TensorFlowGraph():
         first_hidden_layer = tf.add(tf.matmul(self.input_placeholder,
                                               synapses['input_to_hidden']),
                                     first_hidden_biases)
-        first_hidden_layer = tf.nn.sigmoid(first_hidden_layer)
+        first_hidden_layer = tf.nn.relu(first_hidden_layer)
         second_hidden_layer = tf.add(tf.matmul(first_hidden_layer,
                                                synapses['hidden_to_hidden']),
                                      second_hidden_biases)
-        second_hidden_layer = tf.nn.sigmoid(second_hidden_layer)
+        second_hidden_layer = tf.nn.relu(second_hidden_layer)
+        output_bias = tf.Variable(tf.random_normal([1], seed=SEED))
         output_layer = tf.matmul(second_hidden_layer,
-                                 synapses['hidden_to_output'])
+                                 synapses['hidden_to_output']) + output_bias
         self.output_layer = output_layer
         cost_function, optimizer = self.build_cost_and_optimizer()
         self.cost_function = cost_function

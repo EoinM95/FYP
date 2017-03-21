@@ -10,7 +10,7 @@ from classifier import Classifier, build_and_test_classifier
 MISSING_WORDS = []
 MISSING_WORDS_FILE = 'missing_words.txt'
 CORPUS_DIRECTORY = '..\\duc01_tagged_meo_data\\'
-SENTENCE_FEATURES = 8
+SENTENCE_FEATURES = 7
 
 class Summariser():
     """Summariser class, use to summarise texts, needs to be passed pre-trained classifier"""
