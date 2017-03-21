@@ -55,7 +55,7 @@ class TensorFlowGraph():
                                                synapses['hidden_to_hidden']),
                                      second_hidden_biases)
         second_hidden_layer = tf.nn.relu(second_hidden_layer)
-        output_bias = tf.Variable(tf.random_normal([1], seed=SEED))
+        output_bias = tf.Variable(tf.random_normal([1]))
         output_layer = tf.matmul(second_hidden_layer,
                                  synapses['hidden_to_output']) + output_bias
         self.output_layer = output_layer
