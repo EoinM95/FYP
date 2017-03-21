@@ -7,11 +7,11 @@ relu activations, learning rate 0.15
 no output bias (try both), no output clipping"""
 
 
-LEARNING_RATE = 0.15
+LEARNING_RATE = 0.0015
 SEED = 1
 EPOCHS = 100000
-HIDDEN_LAYER_A_FACTOR = 1
-HIDDEN_LAYER_B_FACTOR = .5
+HIDDEN_LAYER_A_FACTOR = 70
+HIDDEN_LAYER_B_FACTOR = 21
 
 class NeuralNetwork():
     """Class representing a trainable NeuralNetwork with one hidden layer"""

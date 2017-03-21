@@ -103,7 +103,7 @@ def find_training_files_and_process(vector_dictionary):
                         file_counter = file_counter - 1
                 else:
                     print('Couldn\'t find matching original for scored summary: ', scored_filepath)
-    print('Found and processed ', len(features_and_scores), ' usable texts and scored summaries', flush=True)
+    print('Found and processed ', file_counter, ' usable texts and scored summaries', flush=True)
     return features_and_scores
 
 
