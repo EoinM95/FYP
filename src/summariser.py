@@ -5,7 +5,7 @@ from corpus_parser import read_from_training, parse_from_new
 from sentence_splitter import split, tokenize
 from utilities import remove_stop_words, sum_of_vectors, DO_NOT_INCLUDE, stem, tag
 from features import calculate_feature_vectors
-from classifier import Classifier, build_and_test_classifier
+from classifier import build_and_test_classifier
 
 MISSING_WORDS = []
 MISSING_WORDS_FILE = 'missing_words.txt'
@@ -38,11 +38,8 @@ class Summariser():
 def build_summariser(vector_dictionary, classifier_type, trained_model_file=None):
     """Process the default corpus, train and test a classifier and return a summariser object"""
     processed_corpus = find_training_files_and_process(vector_dictionary)
-    classifier = None
-    if trained_model_file is not None:
-        classifier = Classifier(classifier_type, SENTENCE_FEATURES, trained_model_file)
-    else:
-        classifier = build_and_test_classifier(classifier_type, SENTENCE_FEATURES, processed_corpus)
+    classifier = build_and_test_classifier(classifier_type, SENTENCE_FEATURES,
+                                           processed_corpus, trained_model_file)
     summariser = Summariser(classifier, vector_dictionary)
     return summariser
 

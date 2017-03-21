@@ -69,17 +69,20 @@ class Classifier:
         """Save classifier to file"""
         self.classifier.save(filename)
 
-def build_and_test_classifier(classifier_type, sentence_features, processed_corpus):
+def build_and_test_classifier(classifier_type, sentence_features, processed_corpus,
+                              trained_model_file):
     """Read in vectors, read in all scored summaries and corresponding originals for title+keywords
     Then calculate feature vectors for every sentence in every text"""
     training_set, test_set = train_and_test_split(processed_corpus)
-    classifier = Classifier(classifier_type, sentence_features)
-    classifier.train(training_set)
+    classifier = Classifier(classifier_type, sentence_features, trained_model_file)
+    if trained_model_file is None:
+        classifier.train(training_set)
     classifier.test(test_set)
-    if classifier_type is NEURAL_NET:
-        classifier.save('./trained_model.tf')
-    else:
-        classifier.save('./bayes_model.nb')
+    if trained_model_file is None:
+        if classifier_type is NEURAL_NET:
+            classifier.save('./trained_model.tf')
+        else:
+            classifier.save('./bayes_model.nb')
     return classifier
 
 def train_and_test_split(processed_corpus):
