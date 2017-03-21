@@ -18,14 +18,14 @@ class Classifier:
 
     def initialise_classifier(self, classifier_type, sentence_features):
         """Restore classifier from file"""
-        if classifier_type == NEURAL_NET:
+        if classifier_type is NEURAL_NET:
             self.classifier = NeuralNetwork(sentence_features)
         else:
             self.classifier = NBClassifier() #pylint: disable = R0204
 
     def load_model_from_file(self, classifier_type, sentence_features, filename):
         """Restore classifier from file"""
-        if classifier_type == NEURAL_NET:
+        if classifier_type is NEURAL_NET:
             self.classifier = NeuralNetwork(sentence_features, filename)
         else:
             self.classifier = NBClassifier(filename) #pylint: disable = R0204
@@ -76,7 +76,7 @@ def build_and_test_classifier(classifier_type, sentence_features, processed_corp
     classifier = Classifier(classifier_type, sentence_features)
     classifier.train(training_set)
     classifier.test(test_set)
-    if classifier_type == NEURAL_NET:
+    if classifier_type is NEURAL_NET:
         classifier.save('./trained_model.tf')
     else:
         classifier.save('./bayes_model.nb')
