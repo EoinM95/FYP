@@ -56,6 +56,7 @@ def find_training_files_and_process(vector_dictionary):
     """Find all files which are usable and parse them, return feature vectors and scores"""
     file_counter = 0
     features_and_scores = []
+    print('Loading DUC training corpus...', flush=True)
     for subdir, dirs, files in os.walk(CORPUS_DIRECTORY): #pylint: disable = W0612
         for file in files:
             corpus_file = subdir + os.sep + file
@@ -78,6 +79,7 @@ def find_sample_files_and_summarise(summariser):
     """Find all files which are usable and parse them, return feature vectors and scores"""
     file_counter = 0
     features_and_scores = []
+    print('Loading DUC sample texts...', flush=True)
     for subdir, dirs, files in os.walk(TEST_DOCS_DIRECTORY): #pylint: disable = W0612
         for file in files:
             sample_file = subdir + os.sep + file
