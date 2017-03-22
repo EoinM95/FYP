@@ -8,7 +8,7 @@ from nltk.stem.wordnet import WordNetLemmatizer #pylint: disable = E0401
 DO_NOT_INCLUDE = -1
 
 def score_threshold(val):
-    if val >= 0.5:
+    if val >= 0.4:
         return 1
     return 0
 
