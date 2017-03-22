@@ -1,6 +1,7 @@
 """Read in original texts and reference summaries from corpus"""
 import xml.etree.ElementTree as ET
 import re
+from utilities import DO_NOT_INCLUDE
 
 DOC_END = '</DOC>'
 PUNCTUATION_PATTERN = r'([,\'\";&\-:\$%`/\\{}\*`_]|\.\.\.)'
@@ -29,6 +30,8 @@ SQ_BRACKETS_REGEX = re.compile(SQ_BRACKETS_PATTERN)
 TEXT_STARTER = '[Text]'
 TEXT_STARTER_PATTERN = r'(<TEXT>)(.*\[Text\]) (.*)'
 TEXT_STARTER_REGEX = re.compile(TEXT_STARTER_PATTERN, flags=re.DOTALL)
+PARATAGS_PATTERN = r'</?P>'
+PARATAGS_REGEX = re.compile(PARATAGS_PATTERN)
 
 def parse_from_new(filename):
     """Parse a novel document"""
@@ -38,6 +41,7 @@ def parse_from_new(filename):
         for line in stream:
             line = XML_AMP_REGEX.sub(r'&amp;', line)
             line = XML_ATT_REGEX.sub(r'\1="\2"', line)
+            line = PARATAGS_REGEX.sub('', line)
             xml_string += line
             if TEXT_STARTER in line:
                 text_starter_in = True
@@ -45,7 +49,11 @@ def parse_from_new(filename):
         xml_string = TEXT_STARTER_REGEX.sub(r'\1\n\3', xml_string)
     root = ET.fromstring(xml_string)
     title = find_title(root)
+    if title is DO_NOT_INCLUDE:
+        return DO_NOT_INCLUDE
     doc_body = root.find('TEXT').text
+    if doc_body == '' or doc_body == '\n':
+        doc_body = root.find('LP').text
     doc_body = clean_input(doc_body)
     return {'title':title, 'doc_body': doc_body}
 
@@ -94,7 +102,7 @@ def find_sentences(tag):
                               'in_summary': in_summary})
     return sentences
 
-def find_title(root):
+def find_title(root): #pylint: disable = R0912
     """Find the document title"""
     title = ''
     title_nodes = root.findall('HEADLINE')
@@ -118,6 +126,14 @@ def find_title(root):
             title_node = root.find('HEAD')
             if title_node is not None:
                 title = title_node.text
+    if title == '':
+        title_node = root.find('HL')
+        if title_node is not None:
+            title = title_node.text
+        else:
+            return DO_NOT_INCLUDE
+        title = TITLE_DIVIDER_REGEX.split(title)
+        title = title[0]
     return clean_input(title)
 
 def clean_input(text):
@@ -133,10 +149,11 @@ def clean_input(text):
 
 
 if __name__ == '__main__':
-    TEST_TEXT = '..\\test_docs\\d05a\\FBIS-45908'
+    TEST_TEXT = '..\\test_docs\\d45h\\WSJ910628-0109'
     #'..\\duc01_tagged_meo_data\\d36f\\AP890322-0078.S'
     #'..\\duc01_tagged_meo_data\\d01a\\SJMN91-06184003.S'
     PARSED = parse_from_new(TEST_TEXT)
+    print('title = ', PARSED['title'])
     print('doc_body = ', PARSED['doc_body'])
     #PARSED_SENTENCES = PARSED['sentences']
     #for list_entry in PARSED_SENTENCES:

@@ -23,12 +23,16 @@ class Summariser():
 
     def summarise(self, text_file, output_file):
         """Extract feature_vectors, run through classifier and write summary to output_file"""
-        feature_vectors, sentence_list = featurize_from_new(text_file, self.vector_dictionary)
-        labels = self.classifier.classify(feature_vectors)
-        with open(output_file, 'w+') as output_stream:
-            for i, label in enumerate(labels):
-                if round(label) == 1:
-                    output_stream.write(sentence_list[i]['sentence'] + '\n')
+        processed = featurize_from_new(text_file, self.vector_dictionary)
+        if processed is DO_NOT_INCLUDE:
+            print('ERROR, couldn\'t successfully parse document')
+        else:
+            feature_vectors, sentence_list = processed
+            labels = self.classifier.classify(feature_vectors)
+            with open(output_file, 'w+') as output_stream:
+                for i, label in enumerate(labels):
+                    if round(label) == 1:
+                        output_stream.write(sentence_list[i]['sentence'] + '\n')
 
     def print_summary(self, text_file):
         """Extract feature_vectors, run through classifier and write summary to output_file"""
@@ -78,9 +82,7 @@ def find_sample_files_and_summarise(summariser):
             sample_file = subdir + os.sep + file
             if os.path.isfile(sample_file):
                 file_counter += 1
-                print('Started processing file no ', file_counter, flush=True)
-                if file_counter == 11:
-                    print(sample_file)
+                print('Started processing file ', sample_file, flush=True)
                 summariser.summarise(sample_file,
                                      SAMPLE_SUMMARIES_DIRECTORY + file + '.summary')
 
@@ -94,6 +96,8 @@ def find_sample_files_and_summarise(summariser):
 def featurize_from_new(filename, vector_dictionary):
     """Parse file and create feature_vectors for each of its sentences"""
     parsed_doc = parse_from_new(filename)
+    if parsed_doc is DO_NOT_INCLUDE:
+        return DO_NOT_INCLUDE
     doc_body = parsed_doc['doc_body']
     sentence_list = create_sentence_list(doc_body, vector_dictionary)
     title_vector = clean_and_vectorize(parsed_doc['title'], vector_dictionary)
