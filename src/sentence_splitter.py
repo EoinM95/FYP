@@ -13,7 +13,8 @@ def tokenize(sentence):
     sentence = sentence.strip()
     sentence = re.sub(r'\s', ' ', sentence)
     sentence = re.sub(r'  ', ' ', sentence)
-    return re.split(TOKEN_PATTERN, sentence.lower())
+    tokens = re.split(TOKEN_PATTERN, sentence.lower())
+    return list(filter(lambda t: t != '' and t != ' ', tokens))
 
 #print(split('Hello. World.'))
 #print(split('This is a sentence. So is this.'))
