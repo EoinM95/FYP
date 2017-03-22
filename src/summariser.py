@@ -13,6 +13,7 @@ CORPUS_DIRECTORY = '..\\duc01_tagged_meo_data\\'
 TEST_DOCS_DIRECTORY = '..\\test_docs\\'
 SAMPLE_SUMMARIES_DIRECTORY = '..\\sample_summaries\\'
 DUC_CORPUS_SIZE = 104
+SAMPLE_DOCS_SIZE = 309
 SENTENCE_FEATURES = 7
 
 class Summariser():
@@ -82,10 +83,9 @@ def find_sample_files_and_summarise(summariser):
             sample_file = subdir + os.sep + file
             if os.path.isfile(sample_file):
                 file_counter += 1
-                print('Started processing file ', sample_file, flush=True)
+                show_progress((file_counter/SAMPLE_DOCS_SIZE)*100)
                 summariser.summarise(sample_file,
                                      SAMPLE_SUMMARIES_DIRECTORY + file + '.summary')
-
     print('Found and summarised ', file_counter, ' texts', flush=True)
     with open(MISSING_WORDS_FILE, 'w') as write_stream:
         for missing_word in MISSING_WORDS:
