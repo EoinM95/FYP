@@ -1,7 +1,6 @@
 """Read in original texts and reference summaries from corpus"""
 import xml.etree.ElementTree as ET
 import re
-from sentence_splitter import split
 
 DOC_END = '</DOC>'
 PUNCTUATION_PATTERN = r'([,\'\";&\-:\$%`/\\{}\*`_]|\.\.\.)'
@@ -28,12 +27,10 @@ def parse_from_new(filename):
     """Parse a novel document"""
     xml_tree = ET.parse(filename)
     root = xml_tree.getroot()
-    title = root.find('title').text
-    title = clean_input(title)
-    doc_body = root.find('text').text
+    title = find_title(root)
+    doc_body = root.find('TEXT').text
     doc_body = clean_input(doc_body)
-    sentences = split(doc_body)
-    return {'title':title, 'sentences': sentences}
+    return {'title':title, 'doc_body': doc_body}
 
 def read_from_training(filename):
     """Parse a training corpus text from a file"""
@@ -96,6 +93,9 @@ def find_title(root):
             for node in title_nodes:
                 for sentence_tag in node.iter('TI'):
                     title += sentence_tag.text
+    if title == '':
+        title_node = root.find('HEADLINE')
+        title = title_node.text
     return clean_input(title)
 
 def clean_input(text):
@@ -111,10 +111,10 @@ def clean_input(text):
 
 
 if __name__ == '__main__':
-    TEST_TEXT = '..\\duc01_tagged_meo_data\\d26e\\FBIS4-23474.S'
+    TEST_TEXT = '..\\test_docs\\d04a\\FT923-5089'
     #'..\\duc01_tagged_meo_data\\d36f\\AP890322-0078.S'
     #'..\\duc01_tagged_meo_data\\d01a\\SJMN91-06184003.S'
-    PARSED = read_from_training(TEST_TEXT)
+    PARSED = parse_from_new(TEST_TEXT)
     print('title = ', PARSED['title'])
     #PARSED_SENTENCES = PARSED['sentences']
     #for list_entry in PARSED_SENTENCES:

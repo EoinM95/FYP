@@ -53,22 +53,23 @@ def top_level_user_menu(vector_dictionary):
 
 def summariser_options_menu(summariser):
     """User menu for summarising documents with trained summariser"""
-    finished = False
-    while not finished:
-        print('You now have a working summariser!', flush=True)
-        print('From here you can enter a file to summarise and a filename to write the summary to',
-              flush=True)
-        print('Or type q into the summary file to quit the program', flush=True)
-        file_to_summarise = input('Enter the file to summarise here: ')
-        output_file = input('Enter the file to write the summary to here: ')
-        if file_to_summarise == 'q':
-            print('Program will now exit, goodbye!', flush=True)
-            summariser = None
-            finished = True
-        elif os.path.isfile(file_to_summarise):
-            summariser.summarise(file_to_summarise, output_file)
-        else:
-            print('File to summarise could not be found, could you try that again?')
+    summariser.summarise('..\\test_docs\\d04a\\FT923-5089', './test_summ.txt')
+    #finished = False
+    # while not finished:
+    #     print('You now have a working summariser!', flush=True)
+    #     print('From here you can enter a file to summarise and a filename to write the summary to',
+    #           flush=True)
+    #     print('Or type q into the summary file to quit the program', flush=True)
+    #     file_to_summarise = input('Enter the file to summarise here: ')
+    #     output_file = input('Enter the file to write the summary to here: ')
+    #     if file_to_summarise == 'q':
+    #         print('Program will now exit, goodbye!', flush=True)
+    #         summariser = None
+    #         finished = True
+    #     elif os.path.isfile(file_to_summarise):
+    #         summariser.summarise(file_to_summarise, output_file)
+    #     else:
+    #         print('File to summarise could not be found, could you try that again?')
 
 def train_new_menu(vector_dictionary):
     """User menu for creating a new summariser"""

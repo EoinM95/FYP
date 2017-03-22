@@ -10,6 +10,7 @@ from classifier import build_and_test_classifier
 MISSING_WORDS = []
 MISSING_WORDS_FILE = 'missing_words.txt'
 CORPUS_DIRECTORY = '..\\duc01_tagged_meo_data\\'
+SAMPLES_DIRECTORY = '..\\test_docs\\'
 SENTENCE_FEATURES = 7
 
 class Summariser():
@@ -21,16 +22,16 @@ class Summariser():
     def summarise(self, text_file, output_file):
         """Extract feature_vectors, run through classifier and write summary to output_file"""
         feature_vectors, sentence_list = featurize_from_new(text_file, self.vector_dictionary)
-        labels = self.classifier.predict(feature_vectors)
+        labels = self.classifier.classify(feature_vectors)
         with open(output_file, 'w+') as output_stream:
             for i, label in enumerate(labels):
                 if round(label) == 1:
-                    output_stream.write(sentence_list[i])
+                    output_stream.write(sentence_list[i]['sentence'] + '\n')
 
     def print_summary(self, text_file):
         """Extract feature_vectors, run through classifier and write summary to output_file"""
         feature_vectors, sentence_list = featurize_from_new(text_file, self.vector_dictionary)
-        labels = self.classifier.predict(feature_vectors)
+        labels = self.classifier.classify(feature_vectors)
         for i, label in enumerate(labels):
             if round(label) == 1:
                 print(sentence_list[i])
@@ -66,13 +67,36 @@ def find_training_files_and_process(vector_dictionary):
             write_stream.write(missing_word +'\n')
     return features_and_scores
 
+def find_sample_files_and_process(vector_dictionary):
+    """Find all files which are usable and parse them, return feature vectors and scores"""
+    file_counter = 0
+    features_and_scores = []
+    for subdir, dirs, files in os.walk(CORPUS_DIRECTORY): #pylint: disable = W0612
+        for file in files:
+            corpus_file = subdir + os.sep + file
+            if os.path.isfile(corpus_file):
+                file_counter += 1
+                print('Started processing file no ', file_counter, flush=True)
+                processed = featurize_from_new(corpus_file, vector_dictionary)
+                if processed is not DO_NOT_INCLUDE:
+                    features_and_scores.append(processed)
+                else:
+                    print('Excluding file ', file, 'reseting file counter', flush=True)
+                    file_counter = file_counter - 1
+    print('Found and processed ', file_counter, ' usable texts and scored summaries', flush=True)
+    with open(MISSING_WORDS_FILE, 'w') as write_stream:
+        for missing_word in MISSING_WORDS:
+            write_stream.write(missing_word +'\n')
+    return features_and_scores
+
+
 def featurize_from_new(filename, vector_dictionary):
     """Parse file and create feature_vectors for each of its sentences"""
     parsed_doc = parse_from_new(filename)
-    doc_body = parsed_doc['text']
+    doc_body = parsed_doc['doc_body']
     sentence_list = create_sentence_list(doc_body, vector_dictionary)
     title_vector = clean_and_vectorize(parsed_doc['title'], vector_dictionary)
-    return calculate_feature_vectors(sentence_list, title_vector)
+    return calculate_feature_vectors(sentence_list, title_vector), sentence_list
 
 def featurize_from_training(corpus_file, vector_dictionary):
     """Parse file and create feature_vectors for each of its sentences"""
