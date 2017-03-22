@@ -28,7 +28,8 @@ def read_vectors_from_file(filename=VECTOR_FILE):
                 if char != '\n':
                     string_bytes += bytearray(next_byte)
             del string_bytes
-            vec_coords = np.fromstring(stream.read(binary_len), dtype='float32', count=vector_dimensions)
+            vec_coords = np.fromstring(stream.read(binary_len),
+                                       dtype='float32', count=vector_dimensions)
             vec_dictionary[word] = vec_coords
     show_progress(100)
     return vec_dictionary

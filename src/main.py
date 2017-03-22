@@ -1,7 +1,7 @@
 """Read a corpus, check there's a vector for everything"""
 import os
 from vector_reader import read_vectors_from_file
-from summariser import build_summariser
+from summariser import build_summariser, find_sample_files_and_summarise
 from classifier import NEURAL_NET, NAIVE_BAYES
 
 VECTOR_FILE = '..\\GoogleNews-vectors-negative300.bin' #'..\\vectors.txt'
@@ -53,7 +53,8 @@ def top_level_user_menu(vector_dictionary):
 
 def summariser_options_menu(summariser):
     """User menu for summarising documents with trained summariser"""
-    summariser.summarise('..\\test_docs\\d04a\\FT923-5089', './test_summ.txt')
+    find_sample_files_and_summarise(summariser)
+    # summariser.summarise('..\\test_docs\\d04a\\FT923-5089', './test_summ.txt')
     #finished = False
     # while not finished:
     #     print('You now have a working summariser!', flush=True)

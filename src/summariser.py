@@ -3,14 +3,16 @@ import os
 import numpy as np
 from corpus_parser import read_from_training, parse_from_new
 from sentence_splitter import split, tokenize
-from utilities import remove_stop_words, sum_of_vectors, DO_NOT_INCLUDE, stem, tag
+from utilities import remove_stop_words, sum_of_vectors, DO_NOT_INCLUDE, stem, tag, show_progress
 from features import calculate_feature_vectors
 from classifier import build_and_test_classifier
 
 MISSING_WORDS = []
 MISSING_WORDS_FILE = 'missing_words.txt'
 CORPUS_DIRECTORY = '..\\duc01_tagged_meo_data\\'
-SAMPLES_DIRECTORY = '..\\test_docs\\'
+TEST_DOCS_DIRECTORY = '..\\test_docs\\'
+SAMPLE_SUMMARIES_DIRECTORY = '..\\sample_summaries\\'
+DUC_CORPUS_SIZE = 104
 SENTENCE_FEATURES = 7
 
 class Summariser():
@@ -54,36 +56,35 @@ def find_training_files_and_process(vector_dictionary):
             corpus_file = subdir + os.sep + file
             if os.path.isfile(corpus_file):
                 file_counter += 1
-                print('Started processing file no ', file_counter, flush=True)
+                show_progress((file_counter/DUC_CORPUS_SIZE)*100)
                 processed = featurize_from_training(corpus_file, vector_dictionary)
                 if processed is not DO_NOT_INCLUDE:
                     features_and_scores.append(processed)
                 else:
                     print('Excluding file ', file, 'reseting file counter', flush=True)
                     file_counter = file_counter - 1
-    print('Found and processed ', file_counter, ' usable texts and scored summaries', flush=True)
+    print('\nFound and processed ', file_counter, ' corpus texts with summaries', flush=True)
     with open(MISSING_WORDS_FILE, 'w') as write_stream:
         for missing_word in MISSING_WORDS:
             write_stream.write(missing_word +'\n')
     return features_and_scores
 
-def find_sample_files_and_process(vector_dictionary):
+def find_sample_files_and_summarise(summariser):
     """Find all files which are usable and parse them, return feature vectors and scores"""
     file_counter = 0
     features_and_scores = []
-    for subdir, dirs, files in os.walk(CORPUS_DIRECTORY): #pylint: disable = W0612
+    for subdir, dirs, files in os.walk(TEST_DOCS_DIRECTORY): #pylint: disable = W0612
         for file in files:
-            corpus_file = subdir + os.sep + file
-            if os.path.isfile(corpus_file):
+            sample_file = subdir + os.sep + file
+            if os.path.isfile(sample_file):
                 file_counter += 1
                 print('Started processing file no ', file_counter, flush=True)
-                processed = featurize_from_new(corpus_file, vector_dictionary)
-                if processed is not DO_NOT_INCLUDE:
-                    features_and_scores.append(processed)
-                else:
-                    print('Excluding file ', file, 'reseting file counter', flush=True)
-                    file_counter = file_counter - 1
-    print('Found and processed ', file_counter, ' usable texts and scored summaries', flush=True)
+                if file_counter == 11:
+                    print(sample_file)
+                summariser.summarise(sample_file,
+                                     SAMPLE_SUMMARIES_DIRECTORY + file + '.summary')
+
+    print('Found and summarised ', file_counter, ' texts', flush=True)
     with open(MISSING_WORDS_FILE, 'w') as write_stream:
         for missing_word in MISSING_WORDS:
             write_stream.write(missing_word +'\n')

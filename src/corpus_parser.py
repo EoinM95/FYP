@@ -22,11 +22,28 @@ XML_AMP_PATTERN = r'&(?!amp;)'
 XML_AMP_REGEX = re.compile(XML_AMP_PATTERN)
 XML_ATT_PATTERN = r'([A-Z])=([0-9]+)'
 XML_ATT_REGEX = re.compile(XML_ATT_PATTERN)
+IN_TEXT_ATTRIBUTES_PATTERN = r'\<F.*\/?>'
+IN_TEXT_ATTRIBUTES_REGEX = re.compile(IN_TEXT_ATTRIBUTES_PATTERN)
+SQ_BRACKETS_PATTERN = r'\[.*\]'
+SQ_BRACKETS_REGEX = re.compile(SQ_BRACKETS_PATTERN)
+TEXT_STARTER = '[Text]'
+TEXT_STARTER_PATTERN = r'(<TEXT>)(.*\[Text\]) (.*)'
+TEXT_STARTER_REGEX = re.compile(TEXT_STARTER_PATTERN, flags=re.DOTALL)
 
 def parse_from_new(filename):
     """Parse a novel document"""
-    xml_tree = ET.parse(filename)
-    root = xml_tree.getroot()
+    xml_string = ''
+    text_starter_in = False
+    with open(filename) as stream:
+        for line in stream:
+            line = XML_AMP_REGEX.sub(r'&amp;', line)
+            line = XML_ATT_REGEX.sub(r'\1="\2"', line)
+            xml_string += line
+            if TEXT_STARTER in line:
+                text_starter_in = True
+    if text_starter_in:
+        xml_string = TEXT_STARTER_REGEX.sub(r'\1\n\3', xml_string)
+    root = ET.fromstring(xml_string)
     title = find_title(root)
     doc_body = root.find('TEXT').text
     doc_body = clean_input(doc_body)
@@ -95,7 +112,12 @@ def find_title(root):
                     title += sentence_tag.text
     if title == '':
         title_node = root.find('HEADLINE')
-        title = title_node.text
+        if title_node is not None:
+            title = title_node.text
+        else:
+            title_node = root.find('HEAD')
+            if title_node is not None:
+                title = title_node.text
     return clean_input(title)
 
 def clean_input(text):
@@ -111,11 +133,11 @@ def clean_input(text):
 
 
 if __name__ == '__main__':
-    TEST_TEXT = '..\\test_docs\\d04a\\FT923-5089'
+    TEST_TEXT = '..\\test_docs\\d05a\\FBIS-45908'
     #'..\\duc01_tagged_meo_data\\d36f\\AP890322-0078.S'
     #'..\\duc01_tagged_meo_data\\d01a\\SJMN91-06184003.S'
     PARSED = parse_from_new(TEST_TEXT)
-    print('title = ', PARSED['title'])
+    print('doc_body = ', PARSED['doc_body'])
     #PARSED_SENTENCES = PARSED['sentences']
     #for list_entry in PARSED_SENTENCES:
     #    print('sentence text = ', list_entry['sentence'])
