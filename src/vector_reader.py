@@ -3,7 +3,7 @@ import numpy as np
 from utilities import show_progress
 VECTOR_FILE = '../vectors.txt'
 
-def read_vectors_from_file(filename=VECTOR_FILE):
+def read_word2vecs_from_file(filename=VECTOR_FILE):
     """Read vectors from file, return dictionary"""
     vec_dictionary = {}
     with open(filename, 'rb') as stream:
@@ -34,5 +34,20 @@ def read_vectors_from_file(filename=VECTOR_FILE):
     show_progress(100)
     return vec_dictionary
 
-#TEST = read_vectors_from_file()
+def save_test_vectors(input_vectors, output_vectors, input_filename, output_filename):
+    """Save test vectors for reuse"""
+    np.save(input_filename, input_vectors)
+    np.save(output_filename, output_vectors)
+
+def restore_test_vectors(input_file, output_file):
+    """Restore input/output vectors for training"""
+    try:
+        input_vectors = np.load(input_file)
+        output_vectors = np.load(output_file)
+        return input_vectors, output_vectors
+    except (IOError, ValueError):
+        return None
+
+
+#TEST = read_word2vecs_from_file()
 #print(TEST['the'].coords)

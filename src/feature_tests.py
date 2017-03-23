@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 from features import compute_tf_isfs_for_text, similairty_to_title, similairty_to_keywords
 from main import sentence_vector
-from vector_reader import read_vectors_from_file
+from vector_reader import read_word2vecs_from_file
 
 SMALL_VECTOR_FILE = '..\\vectors.txt'
 
@@ -35,7 +35,7 @@ class TestSimFunctions(unittest.TestCase):
 
     def test_equal_from_words(self):
         """Test two equal sentences have cosine sim of one"""
-        vector_dictionary = read_vectors_from_file(SMALL_VECTOR_FILE)
+        vector_dictionary = read_word2vecs_from_file(SMALL_VECTOR_FILE)
         sentence = ['hello', 'world']
         vec_a = sentence_vector(sentence, vector_dictionary)
         vec_b = sentence_vector(sentence, vector_dictionary)

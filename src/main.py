@@ -1,10 +1,10 @@
 """Read a corpus, check there's a vector for everything"""
 import os
-from vector_reader import read_vectors_from_file
+from vector_reader import read_word2vecs_from_file
 from summariser import build_summariser, find_sample_files_and_summarise
 from classifier import NEURAL_NET, NAIVE_BAYES
 
-VECTOR_FILE = '..\\GoogleNews-vectors-negative300.bin' #'..\\vectors.txt'
+VECTOR_FILE = '../GoogleNews-vectors-negative300.bin' #'..\\vectors.txt'
 TRAINED_NEURAL_NET_FILE = './trained_model.tf'
 TRAINED_NAIVE_BAYES_FILE = './bayes_model.nb'
 
@@ -20,7 +20,7 @@ def main():
 
 def load_vector_dictionary():
     """Load vectors and return vector dictionary"""
-    return read_vectors_from_file(VECTOR_FILE)
+    return read_word2vecs_from_file(VECTOR_FILE)
 
 def top_level_user_menu(vector_dictionary):
     """First level user menu"""

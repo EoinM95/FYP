@@ -2,6 +2,10 @@
 import numpy as np
 from neural_net import NeuralNetwork
 from nb_classifier import NBClassifier
+from vector_reader import restore_test_vectors, save_test_vectors
+
+INPUT_TEST_VECTORS_FILE = '../test_inputs.npy'
+OUTPUT_TEST_VECTORS_FILE = '../test_outputs.npy'
 
 NEURAL_NET = 1
 NAIVE_BAYES = 0
@@ -60,6 +64,8 @@ class Classifier:
         print('Success rate = ', success_rate, '%')
         print('Precision = ', precision, '%')
         print('Recall = ', recall, '%')
+        save_test_vectors(input_matrix, expected_output,
+                          INPUT_TEST_VECTORS_FILE, OUTPUT_TEST_VECTORS_FILE)
 
     def classify(self, input_matrix):
         """Classify inputs"""
@@ -69,20 +75,24 @@ class Classifier:
         """Save classifier to file"""
         self.classifier.save(filename)
 
-def build_and_test_classifier(classifier_type, sentence_features, processed_corpus,
-                              trained_model_file):
+def build_and_test_classifier(classifier_type, sentence_features, processed_corpus):
     """Read in vectors, read in all scored summaries and corresponding originals for title+keywords
     Then calculate feature vectors for every sentence in every text"""
     training_set, test_set = train_and_test_split(processed_corpus)
-    classifier = Classifier(classifier_type, sentence_features, trained_model_file)
-    if trained_model_file is None:
-        classifier.train(training_set)
+    classifier = Classifier(classifier_type, sentence_features)
+    classifier.train(training_set)
     classifier.test(test_set)
-    if trained_model_file is None:
-        if classifier_type is NEURAL_NET:
-            classifier.save('./trained_model.tf')
-        else:
-            classifier.save('./bayes_model.nb')
+    if classifier_type is NEURAL_NET:
+        classifier.save('./trained_model.tf')
+    else:
+        classifier.save('./bayes_model.nb')
+    return classifier
+
+def restore_and_test_classifier(classifier_type, sentence_features, trained_model_file):
+    """Restore a classifier from a file and retest"""
+    test_set = restore_test_vectors(INPUT_TEST_VECTORS_FILE, OUTPUT_TEST_VECTORS_FILE)
+    classifier = Classifier(classifier_type, sentence_features, trained_model_file)
+    classifier.test(test_set)
     return classifier
 
 def train_and_test_split(processed_corpus):

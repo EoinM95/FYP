@@ -5,13 +5,13 @@ from corpus_parser import read_from_training, parse_from_new
 from sentence_splitter import split, tokenize
 from utilities import remove_stop_words, sum_of_vectors, DO_NOT_INCLUDE, stem, tag, show_progress
 from features import calculate_feature_vectors
-from classifier import build_and_test_classifier
+from classifier import build_and_test_classifier, restore_and_test_classifier
 
 MISSING_WORDS = []
-MISSING_WORDS_FILE = 'missing_words.txt'
-CORPUS_DIRECTORY = '..\\duc01_tagged_meo_data\\'
-TEST_DOCS_DIRECTORY = '..\\test_docs\\'
-SAMPLE_SUMMARIES_DIRECTORY = '..\\sample_summaries\\'
+MISSING_WORDS_FILE = '../missing_words.txt'
+CORPUS_DIRECTORY = '../duc01_tagged_meo_data/'
+TEST_DOCS_DIRECTORY = '../test_docs/'
+SAMPLE_SUMMARIES_DIRECTORY = '../sample_summaries/'
 DUC_CORPUS_SIZE = 104
 SAMPLE_DOCS_SIZE = 309
 SENTENCE_FEATURES = 7
@@ -45,9 +45,13 @@ class Summariser():
 
 def build_summariser(vector_dictionary, classifier_type, trained_model_file=None):
     """Process the default corpus, train and test a classifier and return a summariser object"""
-    processed_corpus = find_training_files_and_process(vector_dictionary)
-    classifier = build_and_test_classifier(classifier_type, SENTENCE_FEATURES,
-                                           processed_corpus, trained_model_file)
+    if trained_model_file is None:
+        processed_corpus = find_training_files_and_process(vector_dictionary)
+        classifier = build_and_test_classifier(classifier_type, SENTENCE_FEATURES,
+                                               processed_corpus)
+    else:
+        classifier = restore_and_test_classifier(classifier_type, SENTENCE_FEATURES,
+                                                 trained_model_file)
     summariser = Summariser(classifier, vector_dictionary)
     return summariser
 
