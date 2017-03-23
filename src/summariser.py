@@ -13,7 +13,7 @@ CORPUS_DIRECTORY = '../duc01_tagged_meo_data/'
 TEST_DOCS_DIRECTORY = '../test_docs/'
 SAMPLE_SUMMARIES_DIRECTORY = '../sample_summaries/'
 DUC_CORPUS_SIZE = 104
-SAMPLE_DOCS_SIZE = 309
+SAMPLE_DOCS_SIZE = 305
 SENTENCE_FEATURES = 7
 
 class Summariser():
@@ -26,7 +26,7 @@ class Summariser():
         """Extract feature_vectors, run through classifier and write summary to output_file"""
         processed = featurize_from_new(text_file, self.vector_dictionary)
         if processed is DO_NOT_INCLUDE:
-            print('ERROR, couldn\'t successfully parse document')
+            return False
         else:
             feature_vectors, sentence_list = processed
             labels = self.classifier.classify(feature_vectors)
@@ -34,6 +34,7 @@ class Summariser():
                 for i, label in enumerate(labels):
                     if round(label) == 1:
                         output_stream.write(sentence_list[i]['sentence'] + '\n')
+            return True
 
     def print_summary(self, text_file):
         """Extract feature_vectors, run through classifier and write summary to output_file"""
@@ -83,7 +84,7 @@ def find_sample_files_and_summarise(summariser):
     """Find all files which are usable and parse them, return feature vectors and scores"""
     file_counter = 0
     features_and_scores = []
-    print('Loading DUC sample texts...', flush=True)
+    print('Summarising DUC sample texts...', flush=True)
     for subdir, dirs, files in os.walk(TEST_DOCS_DIRECTORY): #pylint: disable = W0612
         for file in files:
             sample_file = subdir + os.sep + file

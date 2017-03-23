@@ -72,8 +72,11 @@ def summariser_options_menu(summariser):
             find_sample_files_and_summarise(summariser)
         elif os.path.isfile(file_to_summarise):
             output_file = input('Enter the file to write the summary to here: ')
-            summariser.summarise(file_to_summarise, output_file)
-            print('Summary successfully written to ', output_file)
+            success = summariser.summarise(file_to_summarise, output_file)
+            if success:
+                print('Summary successfully written to ', output_file)
+            else:
+                print('An error occurred while parsing this document, try another?')
         else:
             print('File to summarise could not be found, could you try that again?')
 

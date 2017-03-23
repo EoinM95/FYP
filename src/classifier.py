@@ -58,12 +58,12 @@ class Classifier:
                 false_positives += 1
             elif expected == 1 and output == 0:
                 false_negatives += 1
-        success_rate = (correct / len(expected_output)) * 100
+        accuracy = (correct / len(expected_output)) * 100
         precision = (true_positives / (true_positives + false_positives)) * 100
         recall = (true_positives / (true_positives + false_negatives)) * 100
-        print('Success rate = ', success_rate, '%')
-        print('Precision = ', precision, '%')
-        print('Recall = ', recall, '%')
+        print('Accuracy = ', round(accuracy), '%')
+        print('Precision = ', round(precision), '%')
+        print('Recall = ', round(recall), '%')
         save_test_vectors(input_matrix, expected_output,
                           INPUT_TEST_VECTORS_FILE, OUTPUT_TEST_VECTORS_FILE)
 

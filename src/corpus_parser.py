@@ -2,7 +2,7 @@
 import xml.etree.ElementTree as ET
 import re
 from utilities import DO_NOT_INCLUDE
-
+MIN_CHAR_LENGTH = 60
 DOC_END = '</DOC>'
 PUNCTUATION_PATTERN = r'([,\'\";&\-:\$%`/\\{}\*`_]|\.\.\.)'
 PUNCTUATION_REGEX = re.compile(PUNCTUATION_PATTERN)
@@ -55,6 +55,8 @@ def parse_from_new(filename):
     if doc_body == '' or doc_body == '\n':
         doc_body = root.find('LP').text
     doc_body = clean_input(doc_body)
+    if len(doc_body) <= MIN_CHAR_LENGTH:
+        return DO_NOT_INCLUDE
     return {'title':title, 'doc_body': doc_body}
 
 def read_from_training(filename):
