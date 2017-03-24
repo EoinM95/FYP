@@ -39,7 +39,7 @@ class Classifier:
         input_matrix, output_vector = training_set
         self.classifier.train(input_matrix, output_vector)
 
-    def test(self, test_set):
+    def test(self, test_set): #pylint: disable = R0914
         """Test and print precision, recall values"""
         input_matrix, expected_output = test_set
         correct = 0
@@ -61,9 +61,11 @@ class Classifier:
         accuracy = (correct / len(expected_output)) * 100
         precision = (true_positives / (true_positives + false_positives)) * 100
         recall = (true_positives / (true_positives + false_negatives)) * 100
+        f_score = 2*precision*recall/(precision + recall)
         print('Accuracy = ', round(accuracy), '%')
         print('Precision = ', round(precision), '%')
         print('Recall = ', round(recall), '%')
+        print('F1 Measure = ', round(f_score), '%')
         save_test_vectors(input_matrix, expected_output,
                           INPUT_TEST_VECTORS_FILE, OUTPUT_TEST_VECTORS_FILE)
 

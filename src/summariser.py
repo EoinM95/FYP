@@ -2,8 +2,8 @@
 import os
 import numpy as np
 from corpus_parser import read_from_training, parse_from_new
-from sentence_splitter import split, tokenize
-from utilities import remove_stop_words, sum_of_vectors, DO_NOT_INCLUDE, stem, tag, show_progress
+from utilities import (remove_stop_words, sum_of_vectors, DO_NOT_INCLUDE,
+                       stem, tag, show_progress, split, tokenize)
 from features import calculate_feature_vectors
 from classifier import build_and_test_classifier, restore_and_test_classifier
 
@@ -28,9 +28,10 @@ class Summariser():
         if processed is DO_NOT_INCLUDE:
             return False
         else:
-            feature_vectors, sentence_list = processed
+            feature_vectors, sentence_list, title = processed
             labels = self.classifier.classify(feature_vectors)
             with open(output_file, 'w+') as output_stream:
+                output_stream.write('Title: ' + title + '\n')
                 for i, label in enumerate(labels):
                     if round(label) == 1:
                         output_stream.write(sentence_list[i]['sentence'] + '\n')
@@ -38,8 +39,10 @@ class Summariser():
 
     def print_summary(self, text_file):
         """Extract feature_vectors, run through classifier and write summary to output_file"""
-        feature_vectors, sentence_list = featurize_from_new(text_file, self.vector_dictionary)
+        feature_vectors, sentence_list, title = featurize_from_new(text_file,
+                                                                   self.vector_dictionary)
         labels = self.classifier.classify(feature_vectors)
+        print('Title: ' + title)
         for i, label in enumerate(labels):
             if round(label) == 1:
                 print(sentence_list[i])
@@ -107,8 +110,9 @@ def featurize_from_new(filename, vector_dictionary):
         return DO_NOT_INCLUDE
     doc_body = parsed_doc['doc_body']
     sentence_list = create_sentence_list(doc_body, vector_dictionary)
-    title_vector = clean_and_vectorize(parsed_doc['title'], vector_dictionary)
-    return calculate_feature_vectors(sentence_list, title_vector), sentence_list
+    title = parsed_doc['title']
+    title_vector = clean_and_vectorize(title, vector_dictionary)
+    return calculate_feature_vectors(sentence_list, title_vector), sentence_list, title
 
 def featurize_from_training(corpus_file, vector_dictionary):
     """Parse file and create feature_vectors for each of its sentences"""
