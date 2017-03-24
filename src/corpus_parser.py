@@ -148,16 +148,3 @@ def clean_input(text):
     return_text = PUNCTUATION_REGEX.sub(' ', return_text)
     return_text = MULTIPLE_SPACES_REGEX.sub(' ', return_text)
     return return_text
-
-
-if __name__ == '__main__':
-    TEST_TEXT = '..\\test_docs\\d45h\\WSJ910628-0109'
-    #'..\\duc01_tagged_meo_data\\d36f\\AP890322-0078.S'
-    #'..\\duc01_tagged_meo_data\\d01a\\SJMN91-06184003.S'
-    PARSED = parse_from_new(TEST_TEXT)
-    print('title = ', PARSED['title'])
-    print('doc_body = ', PARSED['doc_body'])
-    #PARSED_SENTENCES = PARSED['sentences']
-    #for list_entry in PARSED_SENTENCES:
-    #    print('sentence text = ', list_entry['sentence'])
-    #    print('sentence in summary? ', list_entry['in_summary'])

@@ -1,12 +1,13 @@
-"""Read a corpus, check there's a vector for everything"""
+"""Main program, show user menu, provide options to load or build summariser
+    and provide options to summarise texts"""
 import os
 from vector_reader import read_word2vecs_from_file
 from summariser import build_summariser, find_sample_files_and_summarise
 from classifier import NEURAL_NET, NAIVE_BAYES
 
-VECTOR_FILE = '../GoogleNews-vectors-negative300.bin' #'..\\vectors.txt'
-TRAINED_NEURAL_NET_FILE = './trained_model.tf'
-TRAINED_NAIVE_BAYES_FILE = './bayes_model.nb'
+VECTOR_FILE = '../GoogleNews-vectors-negative300.bin' #'../vectors.txt'
+TRAINED_NEURAL_NET_FILE = '../trained_NNs/trained_model.tf'
+TRAINED_NAIVE_BAYES_FILE = '../trained_bayes/bayes_model.nb'
 
 
 def main():
@@ -59,8 +60,8 @@ def summariser_options_menu(summariser):
         print('From here you can enter a file to summarise and a filename to write the summary to',
               flush=True)
         print('You can also type ALL into the summary file prompt')
-        print('Which will summarise all the sample documents.')
-        print('Sample summaries will be written to ./sample_summaries')
+        print(' which will summarise all the sample documents.')
+        print('Sample summaries will be written to ../sample_summaries')
         print('****Warning this will overwrite whatever was in the previous set of samples***')
         print('Or type q into the summary file to quit the program', flush=True)
         file_to_summarise = input('Enter the file to summarise here: ')

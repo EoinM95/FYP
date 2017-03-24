@@ -93,7 +93,7 @@ class TensorFlowGraph():
         saver = tf.train.Saver()
         new_file = open(save_location, 'w+')
         new_file.close()
-        saver.save(self.sess, os.path.join(os.getcwd(), save_location))
+        saver.save(self.sess, os.path.abspath(save_location))
 
 def build_synapses(input_nodes, hidden_layer_1_nodes, hidden_layer_2_nodes):
     """Create variables representing synapses in the neural net"""

@@ -5,7 +5,7 @@ from features import compute_tf_isfs_for_text, similairty_to_title, similairty_t
 from main import sentence_vector
 from vector_reader import read_word2vecs_from_file
 
-SMALL_VECTOR_FILE = '..\\vectors.txt'
+SMALL_VECTOR_FILE = '../vectors.txt'
 
 class TestTSISFS(unittest.TestCase):
     """Test cases for tf_isf for text"""
