@@ -2,7 +2,7 @@
 import unittest
 import numpy as np
 from features import compute_tf_isfs_for_text, similairty_to_title, similairty_to_keywords
-from main import sentence_vector
+from summariser import sentence_vector
 from vector_reader import read_word2vecs_from_file
 
 SMALL_VECTOR_FILE = '../vectors.txt'

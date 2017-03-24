@@ -2,13 +2,10 @@
 import os
 import numpy as np
 import tensorflow as tf #pylint: disable = E0401
-"""Highest results so far had 9 in hidden layer one, 4 in hidden layer 2,
-relu activations, learning rate 0.15
-no output bias (try both), no output clipping"""
+
 
 
 LEARNING_RATE = 0.15
-SEED = 1
 EPOCHS = 100000
 HIDDEN_LAYER_A_FACTOR = 1
 HIDDEN_LAYER_B_FACTOR = .5
