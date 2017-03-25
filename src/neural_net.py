@@ -55,7 +55,7 @@ class TensorFlowGraph():
         output_bias = tf.Variable(tf.random_normal([1]))
         output_layer = tf.matmul(second_hidden_layer,
                                  synapses['hidden_to_output']) + output_bias
-        self.output_layer = output_layer
+        self.output_layer = tf.nn.relu(output_layer)
         cost_function, optimizer = self.build_cost_and_optimizer()
         self.cost_function = cost_function
         self.optimizer = optimizer
