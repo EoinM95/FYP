@@ -1,0 +1,2 @@
+model_checkpoint_path: "C:\\Users\\eoinm\\FYP\\trained_NNs\\trained_model.tf"
+all_model_checkpoint_paths: "C:\\Users\\eoinm\\FYP\\trained_NNs\\trained_model.tf"
