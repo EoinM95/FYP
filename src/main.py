@@ -92,10 +92,10 @@ def train_new_menu(vector_dictionary):
         print('q to quit the program', flush=True)
         user_choice = input('Enter your selection here: ')
         if user_choice == 'nn':
-            summariser = build_summariser(vector_dictionary, NEURAL_NET)
+            summariser = build_summariser(vector_dictionary, NEURAL_NET, TRAINED_NEURAL_NET_FILE)
             finished = True
         elif user_choice == 'nb':
-            summariser = build_summariser(vector_dictionary, NAIVE_BAYES)
+            summariser = build_summariser(vector_dictionary, NAIVE_BAYES, TRAINED_NAIVE_BAYES_FILE)
             finished = True
         elif user_choice == 'q':
             print('Program will now exit, goodbye!', flush=True)
