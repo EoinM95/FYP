@@ -47,12 +47,12 @@ class Summariser():
             if round(label) == 1:
                 print(sentence_list[i])
 
-def build_summariser(vector_dictionary, classifier_type, trained_model_file=None):
+def build_summariser(vector_dictionary, classifier_type, trained_model_file, new=False):
     """Process the default corpus, train and test a classifier and return a summariser object"""
-    if trained_model_file is None:
+    if new:
         processed_corpus = find_training_files_and_process(vector_dictionary)
         classifier = build_and_test_classifier(classifier_type, SENTENCE_FEATURES,
-                                               processed_corpus)
+                                               processed_corpus, trained_model_file)
     else:
         classifier = restore_and_test_classifier(classifier_type, SENTENCE_FEATURES,
                                                  trained_model_file)
