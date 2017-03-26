@@ -13,7 +13,7 @@ and so these systems will be most effective when summarising other news articles
 Documents to be summarised are expected to be in XML format and have the following structure:
 ```xml
 <DOC>
-<HEAD>Doc title</HEAD> ***HL, H3 or HEADLINE tags also accepted
+<HEAD><s>Doc title</s></HEAD> ***HL, H3 or HEADLINE tags also accepted
 <TEXT>
   Doc body.
 </TEXT>
