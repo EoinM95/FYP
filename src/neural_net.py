@@ -11,7 +11,7 @@ HIDDEN_LAYER_A_FACTOR = 1
 HIDDEN_LAYER_B_FACTOR = .5
 
 class NeuralNetwork():
-    """Class representing a trainable NeuralNetwork with one hidden layer"""
+    """Class representing a trainable NeuralNetwork"""
     def __init__(self, input_nodes, tfsession_file=None):
         self.input_nodes = input_nodes
         self.tf_graph = TensorFlowGraph(self.input_nodes, tfsession_file)
